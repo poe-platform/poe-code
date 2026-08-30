@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { minVersion, satisfies } from "semver";
 import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
@@ -36,6 +37,25 @@ function getUnbundledWorkspaceDeps(pkg: PackageJson): string[] {
 }
 
 describe("standalone package publish metadata", () => {
+  it.each(["package.json", "packages/poe-agent/package.json"])(
+    "%s requires a patched shell-quote consumer floor",
+    (relativePath) => {
+      const range = readPackageJson(relativePath).dependencies?.["shell-quote"];
+      expect(range).toBeDefined();
+      expect(satisfies(minVersion(range!)!, ">=1.9.0 <2")).toBe(true);
+    }
+  );
+
+  it("ships gray-matter with its locked patched YAML parser", () => {
+    const pkg = readPackageJson("package.json");
+    expect(pkg.dependencies?.["gray-matter"]).toBeDefined();
+    expect(pkg.bundleDependencies).toContain("gray-matter");
+    const lock = JSON.parse(fs.readFileSync(path.join(ROOT, "package-lock.json"), "utf8"));
+    const yaml = lock.packages["node_modules/gray-matter/node_modules/js-yaml"];
+    expect(satisfies(yaml.version, ">=3.15.1 <4")).toBe(true);
+    expect(yaml.inBundle).toBe(true);
+  });
+
   it("does not pin poe-code to one 0.0.x Toolcraft release", () => {
     const dependencies = readPackageJson("package.json").dependencies;
     expect(dependencies?.toolcraft).toBe(">=0.0.51 <0.1.0");

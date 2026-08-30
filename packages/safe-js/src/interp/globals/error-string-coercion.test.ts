@@ -87,28 +87,28 @@ describe("String coercion of supported errors", () => {
     expect(result.returnValue).toEqual(new Function(source)());
   });
 
-  it("does not infer an error brand from ordinary object fields", () => {
+  it("does not infer an error brand from ordinary object fields", async () => {
     const value = {
       name: "TypeError",
       message: "example failure",
       stack: "TypeError: example failure"
     };
     const globals = createObjectArrayGlobals({ budget: new Budget() });
-    expect(globals.String.call([value])).toBe(String(value));
-    expect(globals.String.call([value])).toBe("[object Object]");
+    expect(await globals.String.call([value])).toBe(String(value));
+    expect(await globals.String.call([value])).toBe("[object Object]");
   });
 
-  it("does not silently change the separately observed guest object conversion failure", async () => {
+  it("closes the separately observed guest object conversion failure", async () => {
     const source = "return String({});";
     expect(new Function(source)()).toBe("[object Object]");
-    await expect(run(source)).rejects.toMatchObject({
-      name: "TypeError",
-      message: "Cannot convert object to primitive value"
-    });
+    const result = await run(source);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw result.error;
+    expect(result.returnValue).toBe("[object Object]");
   });
 
-  it.each(["undefined", "null", "7", '() => "custom"'])(
-    "does not add coercion hooks for an own toString value %s",
+  it.each(["undefined", "null", "7"])(
+    "rejects a noncallable own toString value %s",
     async (value) => {
       const source = `const failure = new TypeError("example failure");
         failure.toString = ${value}; return String(failure);`;
@@ -119,7 +119,7 @@ describe("String coercion of supported errors", () => {
     }
   );
 
-  it("preserves the existing error brand through copy and in-memory replay and snapshot restore", () => {
+  it("preserves the existing error brand through copy and in-memory replay and snapshot restore", async () => {
     const failure = createSubsetErrorValue("TypeError", "example failure", [], new Budget()) as {
       name: string;
       message: string;
@@ -145,14 +145,18 @@ describe("String coercion of supported errors", () => {
 
     const globals = createObjectArrayGlobals({ budget: new Budget() });
     for (const value of [failure, copied, replayed, binding.value]) {
-      expect(globals.String.call([value])).toBe("TypeError: example failure");
+      expect(await globals.String.call([value])).toBe("TypeError: example failure");
     }
   });
 
-  it("keeps converted error strings subject to the existing string budget", () => {
+  it("keeps converted error strings subject to the existing string budget", async () => {
     const failure = createSubsetErrorValue("TypeError", "example failure", [], new Budget());
     const globals = createObjectArrayGlobals({ budget: new Budget({ stringLength: 20 }) });
-    expect(() => globals.String.call([failure])).toThrow(SandboxError);
-    expect(() => globals.String.call([failure])).toThrow("stringLength: 26 > 20");
+    await expect(Promise.resolve().then(() => globals.String.call([failure]))).rejects.toThrow(
+      SandboxError
+    );
+    await expect(Promise.resolve().then(() => globals.String.call([failure]))).rejects.toThrow(
+      "stringLength: 26 > 20"
+    );
   });
 });

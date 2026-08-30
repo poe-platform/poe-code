@@ -92,6 +92,11 @@ export type SandboxCallContext = {
   };
   readonly stack: readonly string[];
   readonly thisValue: SandboxValue;
+  readonly invokeClosure?: (
+    closure: SandboxClosure,
+    args: readonly SandboxValue[],
+    thisValue: SandboxValue
+  ) => Promise<SandboxValue>;
 };
 
 export type SandboxClosure = {

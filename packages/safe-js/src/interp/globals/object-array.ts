@@ -1,8 +1,8 @@
-import { sandboxErrorTypes } from "../../error/shape.js";
 import type { Budget } from "../budget.js";
 import { isFloat32Array } from "../float32.js";
 import { setFloat32Member } from "./float32array.js";
 import { getSandboxIterator } from "../iteration.js";
+import { sandboxString } from "../string-coercion.js";
 import {
   allocateProducedSandboxValue,
   createSandboxClosure,
@@ -124,15 +124,8 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
     }),
     String: createSandboxClosure({
       sandbox: true,
-      call: ([value]) =>
-        options.budget.allocateString(
-          typeof value === "object" &&
-            value !== null &&
-            sandboxErrorTypes.has(value) &&
-            !Object.hasOwn(value, "toString")
-            ? Error.prototype.toString.call(value)
-            : String(value)
-        ),
+      call: (args, context) =>
+        sandboxString(args.length === 0 ? "" : args[0], options.budget, context),
       name: "String",
       properties: {
         raw: createSandboxClosure({

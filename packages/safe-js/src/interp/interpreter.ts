@@ -3463,6 +3463,11 @@ async function invokeSandboxClosure(
       {
         stack,
         thisValue,
+        invokeClosure: (
+          closure: SandboxClosure,
+          argumentsList: readonly SandboxValue[],
+          receiver: SandboxValue
+        ) => invokeSandboxClosure(closure, argumentsList, context, stack, span, receiver),
         ...(span === undefined ? {} : { span })
       }
     ]);

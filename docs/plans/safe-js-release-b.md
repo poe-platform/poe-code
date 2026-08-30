@@ -1,5 +1,49 @@
 # Release B: isolated adapter SDK and CLI configuration
 
+## Verified release record — August 30, 2026
+
+Release B is published as `poe-code@12.0.5`. Commit and registry `gitHead`
+both equal `860467821d390fab7da8095de9f7fec8b43055de`; GitHub release run
+`33297073653` succeeded. This record supersedes the candidate and preparation
+statuses below, which remain historical evidence rather than current blockers.
+
+The released 26-path delta adds shared filesystem adapter injection to the
+SafeJS SDK and explicit memory/host-directory configuration to both CLIs.
+It preserves the remote Float32 changes and `jobs-v7` engine, without importing
+unfinished local language/class or browser work. The public routes are
+`poe-code/safejs` and `poe-code/safe-fs`; their scoped workspaces remain private.
+
+Verification of the actual registry tarball and a fresh installation passed on
+Node 18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0: foundation and adapter
+runtime checks, both CLIs with memory and real temporary directories, public
+TypeScript consumers, and supported-public-route host-journal recovery.
+Strict Node-only and DOM consumers passed with NodeNext and Bundler resolution,
+including negative configuration-union cases and separate `@types/node`
+18.19.130, 20.19.43, 22.20.1 and 24.13.3 installations.
+
+Pending append/write recovery retained host policy across public index/core/CLI
+routes: unknown outcomes failed closed for external reconciliation; accepted
+reconciled outcomes and recorded replay did not repeat effects. This is not a
+universal exactly-once guarantee, nor a claim about unsupported private bundle
+mixes. No production host-metadata rewrite was needed.
+
+All 134 checked runtime files and 39 foundation declarations matched the
+verified candidate, registry tarball and fresh installation. The tarball SHA256
+is `ab0046dee8c96a08c83b69e35f846954ea18f8900170453238fc858f08aa9b31`.
+Full tests passed: 26,497 tests, with the existing 41 skips and no new exclusions;
+882 focused tests passed on each of the five Node versions. Ordinary commit
+and push hooks passed, and five CLI screenshots were reviewed. The original
+checkout, protected fonts and `CLAUDE.md` symlink were preserved.
+
+Browser portability, the `safe-js` rename, safe-bash migration and legacy-copy
+removal remain pending. Browser checks for this Node-only release were negative
+boundary checks, not browser-runtime support. The candidate's 10 development
+dependency advisories and GitHub's 34 default-branch alerts have different
+scopes; neither was represented as a security-zero result.
+
+Operator evidence: `/tmp/release-b-published.lQ2qcu/artifacts/final-receipt.json`
+and `/tmp/release-b-candidate.kVNsf5/artifacts/actual-staged.patch`.
+
 ## Release candidate assembly — August 30, 2026
 
 The current candidate starts at remote main `dd7f0fcd0d7796ee17577af2a7d76da295cc5a70`,

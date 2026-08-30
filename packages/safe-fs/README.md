@@ -6,8 +6,10 @@ runtime package dependencies. The `@poe-code/safe-fs` workspace remains private
 at `0.0.0-dev`; public consumers use `poe-code/safe-fs` from the root poe-code
 distribution, not a separately published scoped package. The Node.js foundation
 was first published and installed-artifact verified in `poe-code@12.0.3`.
-SafeJS SDK/CLI integration uses this shared implementation through explicit
-adapter injection and filesystem configuration. Browser support, safe-bash
+`poe-code@12.0.5` also publishes SafeJS SDK/CLI integration through explicit
+adapter injection and filesystem configuration. Its installed public runtime,
+types and both CLIs were verified on Node 18.18.2, 18.20.8, 20.20.0,
+22.22.2 and 24.14.0. Browser support, safe-bash
 runtime migration, removal of old copies and the `safe-js` rename remain pending.
 
 The package contains the existing implementations, not alternative backends.

@@ -6,6 +6,19 @@ SafeJS is a tiny, deterministic JavaScript-subset interpreter. You write the orc
 
 It is the engine behind Poe Code's pipelines, experiment loops, and superintendent runs.
 
+## Verified filesystem integration
+
+`poe-code@12.0.5` publishes adapter injection through `makeFsModule` from
+`poe-code/safejs`, backed by the shared `poe-code/safe-fs` implementation.
+Both `poe-safejs` and `poe-code harness run` support `--fs-config <path>` for
+explicit memory or host-directory configuration. The scoped workspace names
+`@poe-code/safejs` and `@poe-code/safe-fs` are private, not public npm imports.
+
+Installed public runtime, TypeScript consumer and CLI checks passed on Node
+18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0. These public routes target
+Node.js; browser runtime support, the `safe-js` rename, safe-bash migration
+and removal of its legacy adapter copies remain pending.
+
 ## Why use it
 
 - **Orchestration as code.** Multi-agent shapes — pipeline, experiment, superintendent, custom — run as a JavaScript subset. No DSL, no JSON state machine, no per-step LLM round trip.

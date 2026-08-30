@@ -263,8 +263,10 @@ Uses `POE_API_KEY` or the stored credential and honors `POE_BASE_URL`. Throws an
 
 ### Shared filesystem foundation
 
-`poe-code@12.0.3` publishes the Node.js foundation at `poe-code/safe-fs`.
-The installed release was verified on Node 18.18.2, 22.22.2 and 24.14.0.
+`poe-code@12.0.5` publishes the Node.js foundation at `poe-code/safe-fs`
+and shared filesystem integration for the SafeJS SDK and both CLIs.
+The installed release was verified on Node 18.18.2, 18.20.8, 20.20.0,
+22.22.2 and 24.14.0, including public runtime and TypeScript consumers.
 `@poe-code/safe-fs` is the private workspace name, not a public npm import.
 
 The implemented foundation contains memory, host-directory, S3 and WebDAV

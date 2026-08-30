@@ -8,7 +8,7 @@ import { createGeneratorChannel } from "./generator.js";
 import { declareHostOperation, wrapCallerInjectedBindings } from "./host-bridge.js";
 import { getSandboxIterator } from "./iteration.js";
 import { callArrayMethod } from "./methods/array.js";
-import { callMapMethod } from "./methods/map.js";
+import { callMapMethod, type MapMethodOptions } from "./methods/map.js";
 import { resolveSandboxValue } from "./promise.js";
 import { createSandboxClosure, createSandboxMap, type SandboxClosure } from "./values.js";
 
@@ -118,22 +118,27 @@ describe("interpreter running-state guards", () => {
     expect(values).toEqual([3, 2, 1, 4]);
   });
 
-  it("rejects map mutation from forEach without using a stale collection cursor", async () => {
+  it("allows map mutation from forEach without using a stale collection cursor", async () => {
     const budget = new Budget();
     const target = createSandboxMap([["a", 1]]);
-    const options = {
+    const options: MapMethodOptions = {
       budget,
-      callClosure: async (closure: SandboxClosure, args: readonly never[]) =>
-        await closure.call(args)
+      callClosure: async (closure, args) => await closure.call(args)
     };
+    const visited: unknown[] = [];
     const callback = createSandboxClosure({
       name: "mutate",
-      call: async () => callMapMethod(target, "set", ["b", 2], options)
+      call: async ([value, key]) => {
+        visited.push([key, value]);
+        return callMapMethod(target, "set", ["b", 2], options);
+      }
     });
 
-    await expect(callMapMethod(target, "forEach", [callback], options)).rejects.toEqual(
-      expect.objectContaining({ code: "reentry", name: "SandboxError" })
-    );
+    await expect(callMapMethod(target, "forEach", [callback], options)).resolves.toBeUndefined();
+    expect(visited).toEqual([
+      ["a", 1],
+      ["b", 2]
+    ]);
     await expect(callMapMethod(target, "set", ["b", 2], options)).resolves.toBe(target);
     expect([...target.entries]).toEqual([
       ["a", 1],

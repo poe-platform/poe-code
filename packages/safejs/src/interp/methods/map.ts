@@ -7,7 +7,11 @@ import {
   type SandboxMap,
   type SandboxValue
 } from "../values.js";
-import { assertCollectionMutable, enterCollectionCallback } from "../running-state.js";
+import { assertCollectionMutable } from "../running-state.js";
+import {
+  enterKeyedCollectionCallback,
+  updateKeyedCollectionCallbacks
+} from "./collection-callback.js";
 
 export type MapMethodName =
   | "get"
@@ -78,34 +82,40 @@ export async function callMapMethod(
       return target.entries.get(args[0]);
     case "set": {
       assertCollectionMutable(target);
-      const nextSize = target.entries.has(args[0]) ? target.entries.size : target.entries.size + 1;
+      const exists = target.entries.has(args[0]);
+      const nextSize = exists ? target.entries.size : target.entries.size + 1;
       options.budget.allocateCollectionEntries(nextSize);
+      if (!exists) updateKeyedCollectionCallbacks(target, "add", args[0]);
       target.entries.set(args[0], args[1]);
       return target;
     }
     case "has":
       return target.entries.has(args[0]);
-    case "delete":
+    case "delete": {
       assertCollectionMutable(target);
-      return target.entries.delete(args[0]);
+      const deleted = target.entries.delete(args[0]);
+      if (deleted) updateKeyedCollectionCallbacks(target, "delete", args[0]);
+      return deleted;
+    }
     case "clear":
       assertCollectionMutable(target);
       target.entries.clear();
+      updateKeyedCollectionCallbacks(target, "clear");
       return undefined;
     case "forEach": {
       const callback = args[0];
       if (!isSandboxClosure(callback)) {
         throw new TypeError("Map.prototype.forEach requires a callback function.");
       }
-      const leaveCallback = enterCollectionCallback(target);
+      const cursor = enterKeyedCollectionCallback(target, target.entries.keys(), options.budget);
       try {
-        const entries = [...target.entries];
-        for (let index = 0; index < entries.length; index += 1) {
-          const [key, value] = entries[index]!;
+        for (let entry = cursor.next(); !entry.done; entry = cursor.next()) {
+          const key = entry.value;
+          const value = target.entries.get(key);
           await options.callClosure(callback, [value, key, target], stack, args[1]);
         }
       } finally {
-        leaveCallback();
+        cursor.leave();
       }
       return undefined;
     }

@@ -7,7 +7,11 @@ import {
   type SandboxSet,
   type SandboxValue
 } from "../values.js";
-import { assertCollectionMutable, enterCollectionCallback } from "../running-state.js";
+import { assertCollectionMutable } from "../running-state.js";
+import {
+  enterKeyedCollectionCallback,
+  updateKeyedCollectionCallbacks
+} from "./collection-callback.js";
 
 export type SetMethodName =
   | "add"
@@ -74,34 +78,39 @@ export async function callSetMethod(
   switch (methodName) {
     case "add": {
       assertCollectionMutable(target);
-      const nextSize = target.values.has(args[0]) ? target.values.size : target.values.size + 1;
+      const exists = target.values.has(args[0]);
+      const nextSize = exists ? target.values.size : target.values.size + 1;
       options.budget.allocateCollectionEntries(nextSize);
+      if (!exists) updateKeyedCollectionCallbacks(target, "add", args[0]);
       target.values.add(args[0]);
       return target;
     }
     case "has":
       return target.values.has(args[0]);
-    case "delete":
+    case "delete": {
       assertCollectionMutable(target);
-      return target.values.delete(args[0]);
+      const deleted = target.values.delete(args[0]);
+      if (deleted) updateKeyedCollectionCallbacks(target, "delete", args[0]);
+      return deleted;
+    }
     case "clear":
       assertCollectionMutable(target);
       target.values.clear();
+      updateKeyedCollectionCallbacks(target, "clear");
       return undefined;
     case "forEach": {
       const callback = args[0];
       if (!isSandboxClosure(callback)) {
         throw new TypeError("Set.prototype.forEach requires a callback function.");
       }
-      const leaveCallback = enterCollectionCallback(target);
+      const cursor = enterKeyedCollectionCallback(target, target.values, options.budget);
       try {
-        const values = [...target.values];
-        for (let index = 0; index < values.length; index += 1) {
-          const value = values[index];
+        for (let entry = cursor.next(); !entry.done; entry = cursor.next()) {
+          const value = entry.value;
           await options.callClosure(callback, [value, value, target], stack, args[1]);
         }
       } finally {
-        leaveCallback();
+        cursor.leave();
       }
       return undefined;
     }

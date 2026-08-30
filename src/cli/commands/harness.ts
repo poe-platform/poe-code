@@ -18,6 +18,8 @@ import {
   parseEnvConfig,
   makeFailModule,
   makeFsModule,
+  parseFsConfig,
+  resolveFsConfig,
   makeGitModule,
   makeHarnessModule,
   makeLogModule,
@@ -29,6 +31,7 @@ import {
   type AgentSpawnEvent,
   type Diagnostic,
   type EnvModuleOptions,
+  type FsModuleOptions,
   type McpModuleOptions
 } from "@poe-code/safejs";
 import {
@@ -62,6 +65,7 @@ type HarnessRunOptions = {
   fix?: boolean;
   fs?: boolean;
   fsRoot?: string;
+  fsConfig?: string;
   envConfig?: string;
   maxSteps?: number;
   dataSize?: number;
@@ -81,6 +85,7 @@ type HarnessNewOptions = {
 
 type HarnessFsOptions = {
   root?: string;
+  adapter?: FsModuleOptions["adapter"];
 };
 
 type ModuleExports = ReadonlyMap<string, unknown> | Record<string, unknown>;
@@ -105,6 +110,17 @@ export function registerHarnessCommand(program: Command, container: CliContainer
       .option(
         "--fs-root <path>",
         "Directory --fs confines the harness to (default: the harness directory)."
+      )
+      .option(
+        "--fs-config <path>",
+        "Configure shared filesystem access from JSON (Node only).",
+        (value: string, previous: string | undefined) => {
+          if (previous !== undefined)
+            throw new ValidationError("--fs-config may be specified only once.");
+          if (value.trim().length === 0)
+            throw new ValidationError("--fs-config needs a JSON file path.");
+          return value;
+        }
       )
       .option("--snapshot-path <path>", "File to write/read harness snapshots.")
       .option(
@@ -195,7 +211,18 @@ async function executeHarnessRun(
 ): Promise<void> {
   const flags = resolveHarnessFlags(program, options.yes);
   const resources = createExecutionResources(container, flags, "harness:run");
+  if (options.fsConfig !== undefined && (options.fs === true || options.fsRoot !== undefined)) {
+    throw new ValidationError("--fs-config cannot be combined with --fs or --fs-root.");
+  }
   const fsOptions = resolveHarnessFsOptions(container, options);
+  const fsConfig =
+    options.fsConfig === undefined
+      ? undefined
+      : parseFsConfig(
+          await container.fs.readFile(path.resolve(container.env.cwd, options.fsConfig), "utf8")
+        );
+  const configuredFs =
+    fsConfig === undefined || flags.dryRun ? undefined : await resolveFsConfig(fsConfig);
   let envOptions: EnvModuleOptions | undefined;
   if (options.envConfig !== undefined) {
     if (options.envConfig.trim().length === 0)
@@ -224,6 +251,11 @@ async function executeHarnessRun(
     if (fsOptions !== undefined) {
       resources.logger.dryRun(
         `Dry run: would enable the fs module rooted at ${formatDisplayPath(container, resolveFsRoot(fsOptions, path.dirname(selectedPath)))}.`
+      );
+    }
+    if (fsConfig !== undefined) {
+      resources.logger.dryRun(
+        `Dry run: would configure the fs module with adapter "${fsConfig.adapter.type}" without constructing it.`
       );
     }
     return;
@@ -290,7 +322,7 @@ async function executeHarnessRun(
                   (error) => {
                     reportedSpawnFailures.add(error);
                   },
-                  runFsOptions,
+                  configuredFs ?? runFsOptions,
                   mcpOptions,
                   envOptions
                 ),
@@ -1110,7 +1142,15 @@ function createHarnessModules(
     fail: toModuleExports(new Map([["default", fail]])),
     ...(fsOptions === undefined
       ? {}
-      : { fs: toModuleExports(makeFsModule({ root: resolveFsRoot(fsOptions, meta.dirname) })) }),
+      : {
+          fs: toModuleExports(
+            makeFsModule(
+              fsOptions.adapter === undefined
+                ? { root: resolveFsRoot(fsOptions, meta.dirname) }
+                : fsOptions
+            )
+          )
+        }),
     git: toModuleExports(git),
     harness: toModuleExports(harness),
     log: toModuleExports(log),

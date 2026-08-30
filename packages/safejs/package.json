@@ -25,6 +25,7 @@
   "dependencies": {
     "@poe-code/agent-spawn": "*",
     "@poe-code/frontmatter": "*",
+    "@poe-code/safe-fs": "*",
     "tiny-mcp-client": "*"
   },
   "scripts": {

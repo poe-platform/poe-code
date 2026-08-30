@@ -19,6 +19,7 @@ import {
 import { makeEnvModule } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeFsModule } from "./modules/fs.js";
+import { parseFsConfig, resolveFsConfig } from "./modules/fs-config.js";
 import { makeGitModule } from "./modules/git.js";
 import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule } from "./modules/log.js";
@@ -69,6 +70,8 @@ describe("@poe-code/safejs public exports", () => {
     expect(api.makeEnvModule).toBe(makeEnvModule);
     expect(api.makeFailModule).toBe(makeFailModule);
     expect(api.makeFsModule).toBe(makeFsModule);
+    expect(api.parseFsConfig).toBe(parseFsConfig);
+    expect(api.resolveFsConfig).toBe(resolveFsConfig);
     expect(api.makeGitModule).toBe(makeGitModule);
     expect(api.makeHarnessModule).toBe(makeHarnessModule);
     expect(api.makeLogModule).toBe(makeLogModule);
@@ -111,9 +114,11 @@ describe("@poe-code/safejs public exports", () => {
       "noopOtelSink",
       "parse",
       "parseEnvConfig",
+      "parseFsConfig",
       "parseMcpConfig",
       "parseModule",
       "registerPendingHostCallPolicy",
+      "resolveFsConfig",
       "restore",
       "run",
       "runHarness",

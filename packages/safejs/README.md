@@ -26,7 +26,11 @@ When you need subprocess or HTTP capability, build a host module with the _exact
 
 Its surface is `node:fs/promises`, not a poe-shaped subset of it: `access`, `appendFile`, `chmod`, `copyFile`, `cp`, `link`, `lstat`, `mkdir`, `mkdtemp`, `readFile`, `readdir`, `readlink`, `realpath`, `rename`, `rm`, `rmdir`, `stat`, `symlink`, `truncate`, `utimes`, `writeFile`, plus `constants` (`F_OK`, `R_OK`, `W_OK`, `X_OK`, `COPYFILE_EXCL`).
 
-**Compliance rule.** For any call the module accepts, the observable answer is node's: identical return values, and identical error `name`, `message`, `code`, `errno`, `syscall`, `path`, and `dest`. node's error is forwarded, never translated. A differential conformance suite drives each case against both the module and the reference API, and compares the outcome against a recorded real-node fixture — so parity is measured against node rather than against the in-memory filesystem the tests run on. Anything that differs from node and is not listed below is a bug.
+**Compliance rule for the Node-backed module.** Calls delegated to `node:fs/promises` preserve its results and error metadata (`name`, `message`, `code`, `errno`, `syscall`, `path`, and `dest`), subject to the supported-result and capability restrictions below. Native argument validation that SafeJS delegates remains runtime-dependent: for example, a fractional `access` mode can be rejected with `RangeError`/`ERR_OUT_OF_RANGE` or accepted by the host Node version. Differential conformance tests cover delegated behavior; SafeJS-owned validation follows the stable contract below rather than claiming exact native parity across Node versions.
+
+**Stable path-validation errors (Node >=18.18).** For filesystem operation path arguments, except for the explicitly refused Buffer/URL forms below, invalid types raise `TypeError` with `code: "ERR_INVALID_ARG_TYPE"`; NUL-bearing strings raise `TypeError` with `code: "ERR_INVALID_ARG_VALUE"`. Diagnostics name the offending argument and describe the received value before path normalization, confinement probes, or filesystem I/O. These SafeJS-owned Node-style diagnostics are stable, not copies of each Node version's wording, and apply with or without a root and with shared adapters. In particular, a NUL-bearing `mkdtemp` prefix always receives the coded `ERR_INVALID_ARG_VALUE` rejection; SafeJS does not reproduce Node 18.18.2's uncoded native TypeError for that input. This normalization does not translate backend errors or narrow Node >=18.18 support.
+
+Shared adapter mode is not a claim of exact native-node conformance: the supplied adapter and bridge determine supported operations and errors, and unsupported operations do not fall back to the host filesystem.
 
 **Deviations that throw.** Each names the unsupported capability rather than coercing, ignoring, or approximating it:
 
@@ -43,7 +47,11 @@ Its surface is `node:fs/promises`, not a poe-shaped subset of it: `access`, `app
 - `error.stack` is sandbox-shaped rather than a node stack. The bridge rewrites the frames to the script's own, so node's frames are neither available to a script nor meaningful to one that ran none of them; node's text survives only in the `name: message` header the stack is still headed by. Reading a property is not a call there is anything to refuse.
 - Given both a bad path and another bad argument, SafeJS blames the path where node may blame the other. The module validates paths itself — `root` rewrites them before node sees them — so `readFile(42, "utf9")` reports the encoding in node and the path here. Each error is still node's own, shaped as node shapes it; only which of two invalid arguments is reported can differ.
 
-**`root` confinement.** Without `root`, the module is `node:fs/promises` untouched. With it, every path argument — including the second path of `rename`, `copyFile`, `cp`, `link`, and `symlink`, and the `mkdtemp` prefix — resolves against `root` and must land inside it. Escapes via `..`, absolute paths, symlink targets, or hardlinks reject with a node-shaped `EACCES` carrying the matching `errno`, the attempted `syscall`, `path`, and `dest`, so a script branches on `error.code` exactly as it would against real node. node's own errnos survive the check: a symlink loop inside root still surfaces `ELOOP`. `cp`'s `dereference: true` is refused under a root — `cp` is the one call that reads a whole tree, a link nested inside it is never canonicalized, and node would copy an escaping target inside root under a name every later check reads as contained.
+**`root` confinement.** Without `root` or `adapter`, the module delegates to `node:fs/promises` (or the injected `fs`) without path confinement. Node-backed relative roots and paths retain their host-working-directory semantics. With a root and no explicit adapter `cwd`, relative paths resolve against `root`. Every resulting path — including the second path of `rename`, `copyFile`, `cp`, `link`, and `symlink`, and the `mkdtemp` prefix — must satisfy confinement. Escapes via `..`, absolute paths, symlink targets, or hardlinks reject with a node-shaped `EACCES` carrying the matching `errno`, the attempted `syscall`, `path`, and `dest`, so a script branches on `error.code` exactly as it would against real node. node's own errnos survive the check: a symlink loop inside root still surfaces `ELOOP`. `cp`'s `dereference: true` is refused under a root — `cp` is the one call that reads a whole tree, a link nested inside it is never canonicalized, and node would copy an escaping target inside root under a name every later check reads as contained.
+
+With `adapter`, an optional absolute virtual `cwd` supplies the relative-path base, never a host directory or a confinement root. When `cwd` is omitted, rooted calls retain their canonical-root-relative default and unrooted calls start at virtual `/`.
+
+The adapter-only SDK options are `cwd?: string` and `signal?: AbortSignal`. `cwd` must be absolute and NUL-free; it need not itself be inside `root`, but every operation's resulting paths still undergo confinement checks. A caller may supply a borrowed host signal with `makeFsModule({ ...await resolveFsConfig(config), signal })`; it is not automatically linked to a run signal and has no JSON representation. Both options require `adapter`; they do not change the legacy Node-shaped `fs` mode. Cancellation cannot undo host effects already admitted.
 
 **`readdir` order** is filesystem-dependent, exactly as in node: node does not sort, and neither does this. Compare names as a set.
 
@@ -105,6 +113,22 @@ frontmatter to the bundled shapes. Use `runHarness()` for raw `.safejs` or legac
 `--fs` registers the [`fs` module](#the-optional-fs-module) — a real filesystem, unlike the
 stubs above — confined to `--fs-root <path>`, which defaults to the script's directory.
 `--fs-root` without `--fs` is a usage error.
+
+Both this CLI and `poe-code harness run` also accept `--fs-config <path>` for explicit
+Node filesystem configuration. The JSON file contains `{ "adapter": { "type": "memory", "options": {} } }`
+or, for an existing machine directory, `{ "adapter": { "type": "real", "options": { "root": "/srv/project" } }, "root": "/work", "cwd": "/work/src" }`.
+The real adapter's `options.root` is an absolute host directory; the outer `root`
+is optional, absolute virtual confinement. Omitting it adds no module confinement.
+Optional `cwd` is an absolute virtual relative-path base, independent of both roots.
+Omitting `cwd` preserves the module's rooted default rather than injecting `/`.
+The config-file path resolves against invocation cwd, but configured roots and
+virtual `cwd` are not host-cwd-relative or remapped into a worktree. `signal` is
+not a config-file option. `--fs-config` cannot be repeated or
+combined with `--fs` or `--fs-root`. Execution validates configuration shape, virtual
+roots, virtual `cwd`, and adapter option syntax before construction or script/snapshot I/O, except
+for reading the config itself. Real directory existence/access checks necessarily
+run during construction. A harness dry run previews the parsed configuration without
+constructing or checking the backend.
 
 Use `poe-code harness run` when you want the same lint-and-run flow against real
 configured agents and host integrations.
@@ -358,6 +382,6 @@ This package does not read package-level config files. Runner options come throu
 - `lint({ filename, modules, fix, fixRanges })`
 - `run({ bindings, budget, modules, randomSeed, signal, snapshot, snapshotIntervalMs, snapshotPath, sink })`
 - `runHarness({ modulesFor, signal, snapshotPath })`
-- `makeFsModule({ root, fs })` — `root` confines every path argument to that directory, and is unconfined when omitted; `fs` injects the implementation to delegate to, defaulting to `node:fs/promises`. Registering the returned module under a name in `run({ modules })` is what gives a script a filesystem at all.
+- `makeFsModule({ root, fs, adapter, cwd, signal })` — `root` confines every path argument to that directory, and adds no confinement when omitted. `fs` injects a Node-shaped implementation, defaulting to `node:fs/promises`; alternatively, `adapter` supplies a shared `FileSystem` instance from the public `poe-code/safe-fs` entry (the `@poe-code/safe-fs` workspace is private). Supplying both rejects. Adapter-only `cwd` sets the absolute virtual relative-path base independently of `root`; omission retains rooted defaults or virtual `/` when unrooted. Relative adapter roots remain anchored at `/`, not at `cwd`. The optional host `signal` is supplied directly to this SDK factory, never through JSON. Node-backed paths and roots keep their host-working-directory semantics. Registering the returned module under a name in `run({ modules })` is what gives a script a filesystem at all.
 
-`poe-safejs` exposes the module through `--fs` and `--fs-root <path>`; `poe-code harness run` exposes the same pair, rooted at the harness directory by default.
+`poe-safejs` exposes the Node-backed module through `--fs` and `--fs-root <path>`; `poe-code harness run` exposes the same pair, rooted at the harness directory by default. These flags retain their existing host-path behavior, including legacy worktree mapping. Both CLIs use the shared SDK helpers for `--fs-config`: `parseFsConfig(json)` validates the JSON envelope, virtual root, and virtual `cwd` without I/O; `resolveFsConfig(config, { registry? })` validates adapter options and constructs the adapter, preserving omitted `root` and `cwd` rather than adding defaults. Register `makeFsModule(await resolveFsConfig(config))` in an SDK module registry for the same access. The initial Node registry contains `memory` and `real`. An optional caller `ReadonlyMap` adds named descriptors with synchronous, I/O-free `validateOptions(options)` and an existing `FileSystemFactory`-compatible `create(options)` binding; duplicate built-in names reject. Wrapper and remote adapters can use these bindings without CLI backend branches, but are not additional built-in JSON adapters in this slice. No credentials or executable modules are loaded implicitly. These helpers configure Node filesystem access; neither virtual confinement nor backend capability flags establish an OS sandbox or grant browser access to a machine directory. A custom CLI `modulesFor` registry may add other modules, but cannot replace an explicitly configured `fs` module.

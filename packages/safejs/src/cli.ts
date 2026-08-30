@@ -16,6 +16,7 @@ import { makeAgentModule } from "./modules/agent.js";
 import { makeEnvModule, parseEnvConfig, type EnvModuleOptions } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeFsModule, type FsModuleOptions } from "./modules/fs.js";
+import { parseFsConfig, resolveFsConfig } from "./modules/fs-config.js";
 import { makeMcpModule } from "./modules/mcp.js";
 import { parseMcpConfig, type McpModuleOptions } from "./modules/mcp-transport.js";
 import { makeHarnessModule } from "./modules/harness.js";
@@ -79,6 +80,7 @@ type ParsedArgs = {
   fix: boolean;
   fs: boolean;
   fsRoot?: string;
+  fsConfig?: string;
   envConfig?: string;
   mcpConfig?: string;
   dataSize?: number;
@@ -139,6 +141,14 @@ export async function runCli(
 
         const cwd = options.cwd ?? readCurrentWorkingDirectory();
         const filepath = path.resolve(cwd, parsed.filepath);
+        const configuredFs =
+          parsed.fsConfig === undefined
+            ? undefined
+            : await resolveFsConfig(
+                parseFsConfig(
+                  await (options.readFile ?? readFile)(path.resolve(cwd, parsed.fsConfig), "utf8")
+                )
+              );
         await assertHarnessFile({
           displayPath: parsed.filepath,
           filepath,
@@ -147,6 +157,7 @@ export async function runCli(
 
         return await runScriptFile(filepath, parsed, {
           cwd,
+          configuredFs,
           env: options.env,
           mcp: options.mcp,
           modulesFor: options.modulesFor,
@@ -242,6 +253,19 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       continue;
     }
 
+    if (arg === "--fs-config") {
+      if (parsed.fsConfig !== undefined) {
+        throw new CliExitError("--fs-config may be specified only once.", EXIT_RUNTIME);
+      }
+      const value = readFlagValue(argv, index, arg);
+      if (value.trim().length === 0 || value.startsWith("--")) {
+        throw new CliExitError("--fs-config needs a JSON file path.", EXIT_RUNTIME);
+      }
+      parsed.fsConfig = value;
+      index += 1;
+      continue;
+    }
+
     if (arg === "--mcp-config") {
       parsed.mcpConfig = readFlagValue(argv, index, arg);
       index += 1;
@@ -287,6 +311,10 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     }
 
     parsed.filepath = arg;
+  }
+
+  if (parsed.fsConfig !== undefined && (parsed.fs || parsed.fsRoot !== undefined)) {
+    throw new CliExitError("--fs-config cannot be combined with --fs or --fs-root.", EXIT_RUNTIME);
   }
 
   if (!parsed.fs && parsed.fsRoot !== undefined) {
@@ -344,6 +372,7 @@ async function runScriptFile(
   parsed: ParsedArgs,
   options: {
     cwd: string;
+    configuredFs: FsModuleOptions | undefined;
     env: EnvModuleOptions | undefined;
     mcp: McpModuleOptions | undefined;
     modulesFor: RunCliOptions["modulesFor"];
@@ -369,6 +398,14 @@ async function runScriptFile(
     stderr: options.stderr,
     stdout: options.stdout
   });
+  if (options.configuredFs !== undefined) {
+    const registry = new Map(
+      runtime.registry instanceof Map ? runtime.registry : Object.entries(runtime.registry)
+    );
+    if (registry.has("fs")) throw new TypeError("fs is already registered by modulesFor.");
+    registry.set("fs", toModuleExports(makeFsModule(options.configuredFs)));
+    runtime.registry = registry;
+  }
   let env = options.env;
   if (parsed.envConfig !== undefined) {
     if (env !== undefined)
@@ -761,6 +798,7 @@ function createUsage(): string {
     "                        git, and metric stubs this runner bundles",
     "  --fs-root <path>      directory --fs confines the script to (default: the script's",
     "                        directory)",
+    "  --fs-config <path>    configure shared filesystem access from JSON (Node only)",
     "  --mcp-config <path>   register named MCP servers from an explicit JSON config",
     "  --env-config <path>   grant environment reads from an explicit JSON config",
     "  --snapshot <path>     write success/failure state; best-effort snapshot on SIGINT",

@@ -278,9 +278,13 @@ const filesystem = new MemoryFileSystem();
 await filesystem.writeFile("/note", new TextEncoder().encode("hello"));
 ```
 
-The public entry targets Node.js. Browser support, SafeJS SDK/CLI adapter
-integration, SafeJS/safe-bash runtime migration and the `safe-js` rename remain
-pending.
+SafeJS accepts these adapters through `makeFsModule({ adapter, root?, cwd?, signal? })`
+from `poe-code/safejs`. Both `poe-safejs` and `poe-code harness run` accept
+`--fs-config <path>` for explicit memory or host-directory configuration; the
+legacy `--fs` and `--fs-root` options retain their Node-backed behavior.
+
+The public entries target Node.js. Browser support, safe-bash runtime migration,
+removal of legacy adapter copies and the `safe-js` rename remain pending.
 The host-directory adapter is not race-proof OS isolation. See the
 [foundation documentation](packages/safe-fs/README.md) for configuration,
 capabilities and backend limitations.

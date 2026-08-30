@@ -71,6 +71,8 @@ export { EnvAccessError, makeEnvModule, parseEnvConfig } from "./modules/env.js"
 export type { EnvModule, EnvModuleOptions } from "./modules/env.js";
 export { makeFailModule } from "./modules/fail.js";
 export { makeFsModule } from "./modules/fs.js";
+export { parseFsConfig, resolveFsConfig } from "./modules/fs-config.js";
+export type { FsConfig, ResolveFsConfigOptions } from "./modules/fs-config.js";
 export type {
   FsImplementation,
   FsModule,

@@ -5,9 +5,10 @@ Shared, filesystem-only TypeScript ESM adapters extracted from `safe-bash`
 runtime package dependencies. The `@poe-code/safe-fs` workspace remains private
 at `0.0.0-dev`; public consumers use `poe-code/safe-fs` from the root poe-code
 distribution, not a separately published scoped package. The Node.js foundation
-is published and installed-artifact verified in `poe-code@12.0.3`. Browser support,
-SafeJS SDK/CLI adapter integration, SafeJS/safe-bash runtime migration, removal of
-old copies and the `safe-js` rename remain pending.
+was first published and installed-artifact verified in `poe-code@12.0.3`.
+SafeJS SDK/CLI integration uses this shared implementation through explicit
+adapter injection and filesystem configuration. Browser support, safe-bash
+runtime migration, removal of old copies and the `safe-js` rename remain pending.
 
 The package contains the existing implementations, not alternative backends.
 In particular, `RealFileSystem({ root })` is the existing machine-directory
@@ -17,6 +18,11 @@ dispatcher, or implicit filesystem selection.
 ## Exports
 
 The public import is `poe-code/safe-fs`. Its root exports:
+
+- `FileSystemConfig`, `FileSystemAdapterDescriptor`, `FileSystemAdapterRegistry`,
+  `readConfigRecord`, `validateFileSystemConfig`, `createFileSystem`,
+  `createNodeFileSystemAdapterRegistry`, `createMemoryFileSystemAdapter`, and
+  `createRealFileSystemAdapter` for explicit Node adapter configuration.
 
 - `FileSystem`, `FileSystemFactory`, `FileSystemCapabilities`, `FileStat`,
   `FileType`, `DirectoryEntry`, `EntryComparison`, `FsOptions`,
@@ -75,6 +81,33 @@ await nodeFs.readFile("note", "utf8");
 the machine adapter does not create its directory. `createRealFileSystem` is
 async and checks the root before returning. Its existing string-root shorthand
 and the constructor's string-root shorthand are retained.
+
+## Explicit Node configuration
+
+`createFileSystem({ type, options? }, { registry })` validates a descriptor's
+options before constructing its adapter. The required registry is a caller-owned
+`ReadonlyMap` of names to `{ validateOptions, create }` descriptors; validation is
+synchronous and must not perform I/O. `createNodeFileSystemAdapterRegistry(extensions?)`
+provides `memory` (empty options) and `real` (`{ root: "/absolute/host/directory" }`)
+and adds explicit descriptors, rejecting duplicate built-in names. Other exported
+backends remain directly constructible; they are not implicit JSON adapters.
+Configuration rejects unknown fields and accessors. It loads no credentials,
+executable modules or environment variables implicitly.
+
+SafeJS exports `parseFsConfig` and `resolveFsConfig` from `poe-code/safejs`.
+Both CLIs accept this JSON through `--fs-config <path>`:
+
+```json
+{ "adapter": { "type": "memory", "options": {} }, "root": "/work", "cwd": "/work/src" }
+```
+
+The outer `root` is optional absolute virtual confinement; `cwd` is an optional
+absolute virtual relative-path base. Neither changes a real adapter's host root.
+Omission preserves rooted defaults rather than injecting a path. Config-file
+paths resolve against invocation cwd. `--fs-config` cannot repeat or combine with
+`--fs`/`--fs-root`. SDK callers may pass a borrowed `AbortSignal` directly to
+`makeFsModule`; signals are not JSON configuration. These APIs do not provide an
+OS sandbox or browser access to host directories.
 
 ## Filesystem contract
 

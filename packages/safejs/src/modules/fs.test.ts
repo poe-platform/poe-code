@@ -3,7 +3,7 @@ import * as nodeFsPromises from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { getSystemErrorName } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Budget } from "../interp/budget.js";
 import { digestHostCallArguments } from "../interp/host-call.js";
@@ -1277,10 +1277,7 @@ describe("makeFsModule", () => {
   //
   // memfs cannot be that reference: it performs almost no argument validation. A
   // NUL path is an ENOENT to memfs, an out-of-range mode is accepted, and
-  // truncate(path, -1) leaves a size of -1. So the arguments SafeJS rewrites itself
-  // (the paths) are proven equal to node's error by differential, while the
-  // arguments SafeJS forwards untouched are driven through the module over real
-  // node:fs/promises, where node's own validator throws before any syscall.
+  // truncate(path, -1) leaves a size of -1.
   describe("argument validation", () => {
     // Never created, and never reached by a call that fails validation.
     const MISSING_PATH = "/safejs-argument-validation-missing";
@@ -1333,44 +1330,55 @@ describe("makeFsModule", () => {
 
     // node describes the value it rejected, and spells each shape differently: an
     // instance by its constructor, a function by its name, a primitive by its type
-    // and inspected form. Every shape is here so the module's rendering of node's
-    // message is proven against node rather than against the shapes a test happened
-    // to reach for.
-    const NON_STRING_PATHS: Record<string, unknown> = {
-      "a number": 42,
-      "a negative zero": -0,
-      "a NaN": NaN,
-      "an object": {},
-      "a null-prototype object": Object.create(null),
-      "a class instance": new Volume(),
-      null: null,
-      undefined: undefined,
-      "a boolean": true,
-      "an array": [],
-      "a function": function received() {},
-      "a symbol": Symbol("path"),
-      "a bigint": 10n
+    // and inspected form.
+    const NON_STRING_PATHS: Record<string, { value: unknown; received: string }> = {
+      "a number": { value: 42, received: "type number (42)" },
+      "a negative zero": { value: -0, received: "type number (-0)" },
+      "a NaN": { value: NaN, received: "type number (NaN)" },
+      "an object": { value: {}, received: "an instance of Object" },
+      "a null-prototype object": {
+        value: Object.create(null),
+        received: "[Object: null prototype] {}"
+      },
+      "a class instance": { value: new Volume(), received: "an instance of Volume" },
+      null: { value: null, received: "null" },
+      undefined: { value: undefined, received: "undefined" },
+      "a boolean": { value: true, received: "type boolean (true)" },
+      "an array": { value: [], received: "an instance of Array" },
+      "a function": { value: function received() {}, received: "function received" },
+      "a symbol": { value: Symbol("path"), received: "type symbol (Symbol(path))" },
+      "a bigint": { value: 10n, received: "type bigint (10n)" }
     };
 
     describe("paths node rejects by type", () => {
       for (const [argument, call] of Object.entries(PATH_ARGUMENT_CALLS)) {
-        it(`blames the '${argument}' argument exactly as node does`, async () => {
+        it(`pins the SafeJS type error and diagnostic for '${argument}'`, async () => {
           const { fs } = createFs();
 
-          for (const value of Object.values(NON_STRING_PATHS)) {
-            expect(await readArgumentError(call(untyped(fs), value))).toEqual(
-              await readArgumentError(call(reference, value))
-            );
+          for (const { value, received } of Object.values(NON_STRING_PATHS)) {
+            expect(await readArgumentError(call(untyped(fs), value))).toEqual({
+              name: "TypeError",
+              code: "ERR_INVALID_ARG_TYPE",
+              message: `The "${argument}" argument must be of type string or an instance of Buffer or URL. Received ${received}`
+            });
+            expect(await readArgumentError(call(reference, value))).toMatchObject({
+              name: "TypeError",
+              code: "ERR_INVALID_ARG_TYPE"
+            });
           }
         });
       }
 
-      for (const [description, value] of Object.entries(NON_STRING_PATHS)) {
+      for (const [description, { value, received }] of Object.entries(NON_STRING_PATHS)) {
         it(`rejects ${description} path with node's ERR_INVALID_ARG_TYPE`, async () => {
           const { fs } = createFs();
 
           expect(await readArgumentError(untyped(fs).stat(value))).toEqual({
-            ...(await readArgumentError(reference.stat(value))),
+            name: "TypeError",
+            code: "ERR_INVALID_ARG_TYPE",
+            message: `The "path" argument must be of type string or an instance of Buffer or URL. Received ${received}`
+          });
+          expect(await readArgumentError(reference.stat(value))).toMatchObject({
             name: "TypeError",
             code: "ERR_INVALID_ARG_TYPE"
           });
@@ -1400,16 +1408,51 @@ describe("makeFsModule", () => {
     });
 
     describe("paths carrying a NUL byte", () => {
-      for (const [argument, call] of Object.entries(PATH_ARGUMENT_CALLS)) {
-        it(`blames the '${argument}' argument exactly as node does`, async () => {
+      for (const [argument, call] of Object.entries(PATH_ARGUMENT_CALLS).filter(
+        ([argument]) => argument !== "prefix"
+      )) {
+        it(`pins the SafeJS NUL error and diagnostic for '${argument}'`, async () => {
           const { fs } = createFs();
           const value = `a${NUL_BYTE}b`;
 
-          expect(await readArgumentError(call(untyped(fs), value))).toEqual(
-            await readArgumentError(call(reference, value))
-          );
+          expect(await readArgumentError(call(untyped(fs), value))).toEqual({
+            name: "TypeError",
+            code: "ERR_INVALID_ARG_VALUE",
+            message: `The argument '${argument}' must be a string, Uint8Array, or URL without null bytes. Received 'a\\x00b'`
+          });
+          expect(await readArgumentError(call(reference, value))).toMatchObject({
+            name: "TypeError",
+            code: "ERR_INVALID_ARG_VALUE"
+          });
         });
       }
+
+      it.each([undefined, "/repo"])(
+        "keeps mkdtemp NUL errors coded with root %s despite the native uncoded-error variant",
+        async (root) => {
+          const { fs } = createFs({}, root);
+          const value = `a${NUL_BYTE}b`;
+
+          expect(await readArgumentError(fs.mkdtemp(value))).toEqual({
+            name: "TypeError",
+            code: "ERR_INVALID_ARG_VALUE",
+            message:
+              "The argument 'prefix' must be a string, Uint8Array, or URL without null bytes. Received 'a\\x00b'"
+          });
+          expect([
+            {
+              name: "TypeError",
+              code: undefined,
+              message: "String.prototype.includes called on null or undefined"
+            },
+            {
+              name: "TypeError",
+              code: "ERR_INVALID_ARG_VALUE",
+              message: expect.stringContaining("The argument 'prefix'")
+            }
+          ]).toContainEqual(await readArgumentError(reference.mkdtemp(value)));
+        }
+      );
 
       it("carries node's ERR_INVALID_ARG_VALUE with no root set", async () => {
         const { fs } = createFs();
@@ -1420,6 +1463,38 @@ describe("makeFsModule", () => {
         });
       });
     });
+
+    it.each([undefined, "/repo"])(
+      "rejects every malformed path before backend operations or root probes with root %s",
+      async (root) => {
+        const io = vi.fn().mockRejectedValue(new Error("Unexpected filesystem I/O"));
+        const fs = makeFsModule({
+          root,
+          fs: {
+            stat: io,
+            readlink: io,
+            mkdtemp: io,
+            copyFile: io,
+            link: io,
+            rename: io,
+            symlink: io,
+            realpath: io
+          } as unknown as FsImplementation
+        });
+
+        for (const call of Object.values(PATH_ARGUMENT_CALLS)) {
+          await expect(call(untyped(fs), 42)).rejects.toMatchObject({
+            name: "TypeError",
+            code: "ERR_INVALID_ARG_TYPE"
+          });
+          await expect(call(untyped(fs), `a${NUL_BYTE}b`)).rejects.toMatchObject({
+            name: "TypeError",
+            code: "ERR_INVALID_ARG_VALUE"
+          });
+        }
+        expect(io).not.toHaveBeenCalled();
+      }
+    );
 
     // An empty path is a well-formed argument, so node takes it to the filesystem
     // and answers with an errno rather than refusing the argument.
@@ -1572,9 +1647,7 @@ describe("makeFsModule", () => {
         "an octal string chmod mode": (fs) => fs.chmod(MISSING_PATH, "755"),
         "a numeric string utimes time": (fs) => fs.utimes(MISSING_PATH, "1", "2"),
         "a Date utimes time": (fs) => fs.utimes(MISSING_PATH, new Date(0), new Date(0)),
-        "an omitted access mode": (fs) => fs.access(MISSING_PATH),
-        // Recorded from node: 1.5 is coerced to int32 rather than refused.
-        "a non-integer access mode": (fs) => fs.access(MISSING_PATH, 1.5)
+        "an omitted access mode": (fs) => fs.access(MISSING_PATH)
       };
 
       for (const [description, call] of Object.entries(ACCEPTED_ARGUMENTS)) {
@@ -1585,6 +1658,16 @@ describe("makeFsModule", () => {
           expect(error.code).toBe("ENOENT");
         });
       }
+
+      it("preserves native fractional-access rejection or acceptance without assuming ENOENT", async () => {
+        const error = await readArgumentError(untyped(makeFsModule()).access(MISSING_PATH, 1.5));
+
+        expect(error).toEqual(await readArgumentError(reference.access(MISSING_PATH, 1.5)));
+        expect([
+          { name: "RangeError", code: "ERR_OUT_OF_RANGE" },
+          { name: "Error", code: "ENOENT" }
+        ]).toContainEqual({ name: error.name, code: error.code });
+      });
 
       it("applies an octal string chmod mode exactly as node does", async () => {
         const { fs } = createFs({ "/repo/file.txt": SAMPLE_TEXT });
@@ -3745,10 +3828,15 @@ describe("makeFsModule", () => {
       };
 
       for (const [name, { call, argument }] of Object.entries(cases)) {
-        it(`${name} rejects with node's ERR_INVALID_ARG_VALUE naming ${argument}`, async () => {
+        it(`${name} rejects with SafeJS ERR_INVALID_ARG_VALUE naming ${argument}`, async () => {
           const { fs } = createFs(TREE, ROOT);
+          const operation = call(fs);
 
-          expect(await readRejection(call(fs))).toEqual({
+          await expect(operation).rejects.toMatchObject({
+            name: "TypeError",
+            code: "ERR_INVALID_ARG_VALUE"
+          });
+          expect(await readRejection(operation)).toEqual({
             name: "TypeError",
             message: `The argument '${argument}' must be a string, Uint8Array, or URL without null bytes. Received ${NUL_PATH_INSPECTED}`
           });

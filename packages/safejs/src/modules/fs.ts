@@ -3,7 +3,15 @@ import * as nodeFsPromises from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { inspect } from "node:util";
 import * as nodeUtil from "node:util";
+import {
+  createNodeFsBridge,
+  type EntryComparison,
+  type FileSystem,
+  FsError,
+  isPathWithin
+} from "@poe-code/safe-fs";
 
+import { getOwnErrorCode } from "../error-codes.js";
 import { declareHostOperation } from "../interp/host-bridge.js";
 import {
   type CanonicalPathFs,
@@ -303,10 +311,21 @@ type StatOptions = {
   bigint?: false;
 };
 
-export type FsModuleOptions = {
-  root?: string;
-  fs?: FsImplementation;
-};
+export type FsModuleOptions =
+  | {
+      root?: string;
+      fs?: FsImplementation;
+      adapter?: never;
+      cwd?: never;
+      signal?: never;
+    }
+  | {
+      adapter: FileSystem;
+      root?: string;
+      cwd?: string;
+      signal?: AbortSignal;
+      fs?: never;
+    };
 
 export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
   readFile(path: PathLike, options: ReadFileOptions): Promise<string>;
@@ -334,11 +353,32 @@ export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
 export function makeFsModule(options: FsModuleOptions = {}): FsModule {
   assertSupportedPlatform();
 
-  const implementation = options.fs ?? nodeFsPromises;
-  // Without a root the module is node's fs/promises untouched; a root turns every
-  // path argument into one that has to resolve inside it.
+  if (options.adapter !== undefined && options.fs !== undefined) {
+    throw new TypeError("fs module accepts either adapter or fs, not both.");
+  }
+
+  if (
+    options.adapter === undefined &&
+    (options.cwd !== undefined || options.signal !== undefined)
+  ) {
+    throw new TypeError("fs module cwd and signal require an adapter.");
+  }
+
+  if (
+    options.cwd !== undefined &&
+    (typeof options.cwd !== "string" || !options.cwd.startsWith("/") || options.cwd.includes("\0"))
+  ) {
+    throw new TypeError("fs module cwd must be an absolute virtual path without null bytes.");
+  }
+
+  const implementation =
+    options.adapter === undefined
+      ? (options.fs ?? nodeFsPromises)
+      : createNodeFsBridge(options.adapter, { cwd: options.cwd, signal: options.signal });
   const fs =
-    options.root === undefined ? implementation : makeRootedFs(implementation, options.root);
+    options.root === undefined
+      ? implementation
+      : makeRootedFs(implementation, options.root, options.adapter, options.cwd, options.signal);
 
   return {
     access: bind(fs, "access", "re-issue"),
@@ -462,18 +502,29 @@ function invoke(fs: FsImplementation, name: FsOperationName, args: readonly unkn
 // Wraps every operation so its path arguments resolve against root and are proven
 // to stay inside it. The wrapped operations keep node's own signatures and
 // results, so the bindings above are unaware a root is in play.
-function makeRootedFs(fs: FsImplementation, root: string): FsImplementation {
+function makeRootedFs(
+  fs: FsImplementation,
+  root: string,
+  adapter?: FileSystem,
+  cwd?: string,
+  signal?: AbortSignal
+): FsImplementation {
   if (root.trim().length === 0) {
     throw new Error("fs module root must be a non-empty string.");
   }
 
+  const resolvedRoot = adapter === undefined ? root : resolve("/", root);
   const rooted: Record<string, FsHostOperation> = {};
 
   for (const name of Object.keys(FS_SYSCALLS) as FsOperationName[]) {
     rooted[name] = async (...args: readonly unknown[]) => {
       assertRootCanConfineOptions(name, args);
 
-      return invoke(fs, name, await resolvePathArguments(fs, root, name, args));
+      return invoke(
+        fs,
+        name,
+        await resolvePathArguments(fs, resolvedRoot, name, args, adapter, cwd, signal)
+      );
     };
   }
 
@@ -499,31 +550,39 @@ async function resolvePathArguments(
   fs: FsImplementation,
   root: string,
   name: FsOperationName,
-  args: readonly unknown[]
+  args: readonly unknown[],
+  adapter?: FileSystem,
+  cwd?: string,
+  signal?: AbortSignal
 ): Promise<readonly unknown[]> {
   const canonicalRoot = await resolveCanonicalPath(readCanonicalPathFs(fs), resolve(root));
+  const base = cwd ?? canonicalRoot;
   const resolved = [...args];
 
   if (name === "symlink") {
     // node stores a symlink's target verbatim and resolves a relative target
     // against the link's own directory, so only the link path is rewritten while
     // the target is checked as the link's directory would see it.
-    const linkPath = readPath(canonicalRoot, args[1]);
+    const linkPath = readPath(base, args[1]);
     resolved[1] = linkPath;
-    await assertInsideRoot(fs, canonicalRoot, name, [
-      readPath(dirname(linkPath), args[0]),
-      linkPath
-    ]);
+    await assertInsideRoot(
+      fs,
+      canonicalRoot,
+      name,
+      [readPath(dirname(linkPath), args[0]), linkPath],
+      adapter,
+      signal
+    );
     return resolved;
   }
 
   const paths = FS_PATH_ARGUMENTS[name].map((_, index) => {
-    const path = readPath(canonicalRoot, args[index]);
+    const path = readPath(base, args[index]);
     resolved[index] = path;
     return path;
   });
 
-  await assertInsideRoot(fs, canonicalRoot, name, paths);
+  await assertInsideRoot(fs, canonicalRoot, name, paths, adapter, signal);
   return resolved;
 }
 
@@ -533,10 +592,12 @@ async function assertInsideRoot(
   fs: FsImplementation,
   canonicalRoot: string,
   name: FsOperationName,
-  paths: readonly string[]
+  paths: readonly string[],
+  adapter?: FileSystem,
+  signal?: AbortSignal
 ): Promise<void> {
   for (const path of paths) {
-    if (await escapesRoot(fs, canonicalRoot, path)) {
+    if (await escapesRoot(fs, canonicalRoot, path, adapter, signal)) {
       throw createAccessDeniedError(name, paths[0], paths[1]);
     }
   }
@@ -545,11 +606,98 @@ async function assertInsideRoot(
 async function escapesRoot(
   fs: FsImplementation,
   canonicalRoot: string,
-  path: string
+  path: string,
+  adapter?: FileSystem,
+  signal?: AbortSignal
 ): Promise<boolean> {
   const canonicalPath = await resolveCanonicalPath(readCanonicalPathFs(fs), path);
 
-  return !(await containsPath(readStat(fs), canonicalRoot, canonicalPath));
+  return !(await (adapter === undefined
+    ? containsPath(readStat(fs), canonicalRoot, canonicalPath)
+    : containsAdapterPath(adapter, canonicalRoot, canonicalPath, signal)));
+}
+
+async function containsAdapterPath(
+  adapter: FileSystem,
+  canonicalRoot: string,
+  canonicalPath: string,
+  signal?: AbortSignal
+): Promise<boolean> {
+  signal?.throwIfAborted();
+
+  if (isPathWithin(canonicalRoot, canonicalPath)) {
+    return true;
+  }
+
+  const compareEntry = adapter.compareEntry;
+  if (compareEntry === undefined) {
+    return false;
+  }
+
+  let current = canonicalPath;
+
+  while (true) {
+    try {
+      const comparison = await awaitEntryComparison(
+        () =>
+          compareEntry.call(
+            adapter,
+            canonicalRoot,
+            adapter,
+            current,
+            signal === undefined ? undefined : { signal }
+          ),
+        signal
+      );
+      if (comparison === "same") {
+        return true;
+      }
+      if (comparison !== "distinct" && comparison !== "unknown") {
+        throw new FsError("EIO", { path: current, message: "invalid filesystem entry comparison" });
+      }
+    } catch (error) {
+      signal?.throwIfAborted();
+      const code = getOwnErrorCode(error);
+      if (code !== "ENOENT" && code !== "ENOTDIR") {
+        throw error;
+      }
+    }
+
+    const parent = dirname(current);
+    if (parent === current) {
+      return false;
+    }
+    current = parent;
+  }
+}
+
+async function awaitEntryComparison(
+  compare: () => Promise<EntryComparison>,
+  signal?: AbortSignal
+): Promise<EntryComparison> {
+  signal?.throwIfAborted();
+  if (signal === undefined) {
+    return compare();
+  }
+
+  let onAbort!: () => void;
+  const aborted = new Promise<never>((_, reject) => {
+    onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+  try {
+    const comparison = await Promise.race([
+      aborted,
+      Promise.resolve().then(() => {
+        signal.throwIfAborted();
+        return compare();
+      })
+    ]);
+    signal.throwIfAborted();
+    return comparison;
+  } finally {
+    signal.removeEventListener("abort", onAbort);
+  }
 }
 
 // realpath and readlink are handed over as bound calls: the injected implementation

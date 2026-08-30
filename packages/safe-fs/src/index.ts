@@ -9,3 +9,10 @@ export * from "./fs/readonly/index.js";
 export * from "./fs/mount/index.js";
 export * from "./fs/overlay/index.js";
 export * from "./node/index.js";
+export { createFileSystem, readConfigRecord, validateFileSystemConfig } from "./config.js";
+export type {
+  FileSystemConfig,
+  FileSystemAdapterDescriptor,
+  FileSystemAdapterRegistry
+} from "./config.js";
+export { createNodeFileSystemAdapterRegistry } from "./config.node.js";

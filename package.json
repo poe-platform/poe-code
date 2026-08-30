@@ -228,7 +228,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo run build && npm run codegen:plan-schemas && npm run codegen:harness-schemas && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
+    "build": "node scripts/build-workspaces.mjs && npm run codegen:plan-schemas && npm run codegen:harness-schemas && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
     "build:deps": "node scripts/list-workspace-deps.mjs",
     "codegen:python-types": "tsx scripts/generate-agent-spawn-py-types.ts",
     "codegen:check:python-types": "tsx scripts/generate-agent-spawn-py-types.ts --check",

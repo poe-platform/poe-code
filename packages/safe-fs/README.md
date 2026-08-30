@@ -129,7 +129,7 @@ They retain the following API:
   `validatePath`, `resolvePath`, `normalizePath`, `relativePath`, `isPathWithin`,
   and `assertPathWithin`.
 
-Private workspace development subpaths are `/contracts`, `/node`, `/fs/memory`, `/fs/real`, `/fs/s3`,
+Private workspace development subpaths are `/contracts`, `/core`, `/node`, `/fs/memory`, `/fs/real`, `/fs/s3`,
 `/fs/s3/http`, `/fs/webdav`, `/fs/readonly`, `/fs/mount`, and `/fs/overlay`.
 These private routes do not imply matching public routes. Only the public root,
 `/core` and `/node` listed above are exposed; public `/node` is the full host API,
@@ -137,6 +137,22 @@ not the private bridge-only development entry. Within the workspace, the entries
 reuse canonical modules; constructors and authority registries
 are not recreated. Streaming S3 request/output types are available from the root.
 Internal authority-registration helpers are deliberately not public exports.
+
+### Private workspace build resolution
+
+Build the private package with `npm run build --workspace=@poe-code/safe-fs`
+before importing its workspace routes. These routes resolve to emitted `dist`
+modules, including `@poe-code/safe-fs/core`; public consumers continue to import
+`poe-code/safe-fs`, not the private workspace package.
+
+The nested `src/package.json` scopes `#safe-fs-platform` to sibling `.js` paths.
+Source tooling resolves those paths to TypeScript, and the package build emits
+the same scope into `dist/package.json`. Native Node imports therefore stay in
+the emitted graph rather than loading `.ts` source. Browser-conditioned bundlers
+and DOM-only declaration consumers use the emitted browser platform without
+mixing source and emitted `FsError` constructors. This is workspace resolution
+metadata, not a SafeJS browser-runtime or language change; the public platform
+restrictions above still apply.
 
 ```ts
 import {

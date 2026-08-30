@@ -14,6 +14,7 @@
   "exports": {
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
     "./contracts": { "types": "./dist/contracts/index.d.ts", "import": "./dist/contracts/index.js" },
+    "./core": { "types": "./dist/core.d.ts", "import": "./dist/core.js" },
     "./node": { "types": "./dist/node/index.d.ts", "import": "./dist/node/index.js" },
     "./fs/memory": { "types": "./dist/fs/memory/index.d.ts", "import": "./dist/fs/memory/index.js" },
     "./fs/real": { "types": "./dist/fs/real/index.d.ts", "import": "./dist/fs/real/index.js" },

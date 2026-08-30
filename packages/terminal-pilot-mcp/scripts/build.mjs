@@ -17,7 +17,14 @@ const workspaceNpmDeps = new Set();
 
 for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   const pkgPath = path.join(packagesDir, dir.name, "package.json");
-  const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
+  let pkgContents;
+  try {
+    pkgContents = await readFile(pkgPath, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") continue;
+    throw error;
+  }
+  const pkg = JSON.parse(pkgContents);
   workspacePackageNames.add(pkg.name);
   workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src");
 

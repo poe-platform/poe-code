@@ -28,7 +28,14 @@ const packagesDir = path.join(rootDir, "packages");
 const workspaceDirs = await readdir(packagesDir, { withFileTypes: true });
 const packageJsons = [];
 for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
-  const pkg = JSON.parse(await readFile(path.join(packagesDir, dir.name, "package.json"), "utf8"));
+  let pkgContents;
+  try {
+    pkgContents = await readFile(path.join(packagesDir, dir.name, "package.json"), "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") continue;
+    throw error;
+  }
+  const pkg = JSON.parse(pkgContents);
   packageJsons.push({ dir: dir.name, pkg });
 }
 

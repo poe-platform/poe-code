@@ -263,7 +263,7 @@ Uses `POE_API_KEY` or the stored credential and honors `POE_BASE_URL`. Throws an
 
 ### Shared filesystem foundation
 
-`poe-code@12.0.5` publishes the Node.js foundation at `poe-code/safe-fs`
+`poe-code@12.0.7` publishes the Node.js foundation at `poe-code/safe-fs`
 and shared filesystem integration for the SafeJS SDK and both CLIs.
 The installed release was verified on Node 18.18.2, 18.20.8, 20.20.0,
 22.22.2 and 24.14.0, including public runtime and TypeScript consumers.
@@ -291,14 +291,16 @@ The host-directory adapter is not race-proof OS isolation. See the
 [foundation documentation](packages/safe-fs/README.md) for configuration,
 capabilities and backend limitations.
 
-#### C filesystem-only browser milestone
+#### Verified filesystem-only browser release
 
-The C milestone adds a portable browser build of `poe-code/safe-fs` and
+Release C (`poe-code@12.0.7`) adds a portable browser build of `poe-code/safe-fs` and
 `poe-code/safe-fs/core`. Under the browser condition, both routes share one
 implementation, including `FsError`, authority registries and `createFsBridge`.
 The portable bridge requires an explicit host codec; this milestone adds no
 codec dependency. Default Node exports and the Node.js `>=18.18` baseline stay
 unchanged, including genuine Buffer results from `createNodeFsBridge`.
+Memory, read-only, mount, overlay and WebDAV adapters are portable; real host
+storage, S3/transports and Node configuration helpers remain Node-only.
 
 The Node host entry `poe-code/safe-fs/node` and the still-Node-only
 `poe-code/safejs`, `poe-code/safejs/core` and `poe-code/safejs/cli` are deliberately
@@ -306,7 +308,11 @@ unavailable at runtime under the browser condition and expose empty browser
 declarations. Their Node exports remain available. This is an exact route
 boundary, not removal of the SDK or its Node capabilities.
 
-Full browser SafeJS runtime support remains pending. Guest codec integration,
+The published artifact passed 17 public filesystem checks in Chromium
+149.0.7827.55. Firefox and WebKit verification remains pending; these checks do
+not establish full browser SafeJS support.
+
+Full browser SafeJS SDK/runtime support remains pending. Guest codec integration,
 portable SDK declaration closure and shared host-call policy/replay metadata
 require separate integration; a browser filesystem build does not prove them.
 

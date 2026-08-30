@@ -1,10 +1,12 @@
 # Shared safe-fs adapters and safe-js rename
 
 Status: The Node foundation (A, `poe-code@12.0.3`) and explicit SafeJS Node SDK/CLI
-integration (B, `poe-code@12.0.5`) are published and verified. C's filesystem-only
-browser packaging has frozen isolated packed-consumer proof; its full candidate
-and public release gates remain separate. Cross-repository migration, the safe-js
-rename and full browser SafeJS/safe-bash execution remain incomplete.
+integration (B, `poe-code@12.0.5`) and filesystem-only browser profile
+(C, `poe-code@12.0.7`) are published and verified. C passed full candidate and
+fresh published-artifact gates. Cross-repository migration, the safe-js rename
+and full browser SafeJS/safe-bash execution remain incomplete. Firefox and
+WebKit filesystem verification remains pending; the recorded C browser proof
+uses Chromium only.
 
 ## Incremental release record — A (August 30, 2026)
 
@@ -53,10 +55,50 @@ rename and full browser SafeJS/safe-bash execution remain incomplete.
   C documentation preserves that committed Node contract, not mutable working-tree
   README or unrelated language/rename work.
 
+## Incremental release record — C (August 30, 2026)
+
+- Published version: `poe-code@12.0.7`; commit and registry `gitHead`:
+  `a21b09b450739d2ccfc44a1a17770fd86785d7e4`. GitHub release run
+  [`33300282777`](https://github.com/poe-platform/poe-code/actions/runs/33300282777)
+  succeeded with that exact checkout. Registry tarball integrity was verified.
+- The exact 63-path slice preserves remote baseline
+  `0750017f6fa71054a4b5cf6e4961139a01788b9d`, including its Map/Set callback
+  mutation work, prior Float32/jobs-v7 changes and unrelated remote source.
+  No live original-checkout browser, class or language work was overlaid.
+- Full candidate suite: 26,674 passed, 41 existing skips, no new exclusions.
+  Each of Node 18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0 passed 1,432
+  focused tests. Normal commit/push hooks and the complete release workflow passed.
+- Fresh published runtime, adapter authority/error identity, recovery, both CLIs,
+  actual temporary-directory integration and strict consumer types passed on
+  all five Nodes. Node-only/DOM consumers passed NodeNext/Bundler, including
+  separate `@types/node` 18.19.130, 20.19.43, 22.20.1 and 24.13.3 consumers and
+  nine rejected option unions per mode. S3/WebDAV checks used explicit mock or
+  injected transports, not deployed cloud services.
+- All 141 canonical JavaScript files and 51 FS declarations match the candidate,
+  registry tarball and fresh install. All 17 package-lint rules and 17 negative
+  publication controls passed; there is no second tsc-emitted FS runtime.
+- Actual Chromium 149.0.7827.55 passed 17 supported public portable-FS checks
+  with zero Node externals or globals. The named host/SafeJS browser routes are
+  denied as documented below. This does not verify Firefox, WebKit or a browser
+  SafeJS SDK/runtime; those gates remain pending.
+- A two-file compiler-loading correction keeps pure package policy usable
+  without TypeScript and loads the compiler only in the async declaration
+  collector. Strict production-only install red/green proof and 208 package-lint
+  tests passed; actual collection still rejects a missing compiler. No dependency,
+  lock or FS change was needed for that correction.
+- Declared FS recovery retains fail-closed uncertain mutation handling and
+  accepted reconciled/recorded replay without a universal exactly-once claim.
+  Erdos's separate published-B finding for raw untagged functions using only
+  `registerPendingHostCallPolicy` remains an unresolved contract question; C
+  neither fixes nor waives it.
+- Original HEAD/index, four terminal fonts and the CLAUDE.md symlink were
+  preserved. Authoritative receipt:
+  `/tmp/release-c-published.lZsBvR/artifacts/final-receipt.json`.
+
 ## C milestone — portable filesystem only
 
-The frozen C source/packaging proof follows B; no C release number is assumed.
-Public browser runtime targets and declarations must agree:
+The following contract is published and verified in `poe-code@12.0.7`.
+Public browser runtime targets and declarations agree:
 
 | Route | Node/default | Browser |
 | --- | --- | --- |
@@ -110,11 +152,12 @@ JavaScript runtime. It passes all 17 package-lint rules and 17 negative publicat
 controls, strict installed NodeNext/Bundler under four type profiles, 269 focused
 tests on each of five Node versions, and 17 Chromium checks with zero Node
 externals/globals. Original duplicate-bundle and unsupported-SDK red evidence is
-retained. This reuses verified B noncanonical output and is **not a full candidate
-build**. Feynman must assemble the exact frozen inputs, run full candidate gates,
-then verify the published artifact through the existing release path. Package
-README and this plan are a separate two-path docs increment, not foundation-source
-replacement. Future OWN/guest SDK packaging, browser shell and actual safe-bash
+retained. That owner proof reused verified B noncanonical output and was **not a
+full candidate build**. The C release record above adds the fresh full build,
+complete gates and actual published-artifact verification, including the bounded
+compiler-loading correction. Package README and this plan were applied as a
+separate two-path docs increment, not foundation-source replacement. Future
+OWN/guest SDK packaging, browser shell and actual safe-bash
 migration/removal remain separately gated; no live author tree is overwritten.
 
 ## Exact requirement

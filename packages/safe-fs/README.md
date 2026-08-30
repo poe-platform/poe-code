@@ -6,13 +6,15 @@ runtime package dependencies. The `@poe-code/safe-fs` workspace remains private
 at `0.0.0-dev`; public consumers use `poe-code/safe-fs` from the root poe-code
 distribution, not a separately published scoped package. The Node.js foundation
 was first published and installed-artifact verified in `poe-code@12.0.3`.
-`poe-code@12.0.5` also publishes SafeJS SDK/CLI integration through explicit
-adapter injection and filesystem configuration. Its installed public runtime,
-types and both CLIs were verified on Node 18.18.2, 18.20.8, 20.20.0,
-22.22.2 and 24.14.0. The C changes described below add a **filesystem-only browser
-profile**; they are not present in `12.0.5`. C's isolated packed-consumer proof is
-complete, but its full release candidate and published-artifact gates remain
-separate. Browser SafeJS/safe-bash execution, safe-bash runtime migration, removal
+SafeJS SDK/CLI integration through explicit adapter injection and filesystem
+configuration first shipped in `poe-code@12.0.5`. Release C, `poe-code@12.0.7`,
+publishes the **filesystem-only browser profile** described below while retaining
+the Node API. Its full candidate, normal hooks, release workflow and fresh
+published-artifact gates passed. Installed public runtime, types and both CLIs
+were verified on Node 18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0; all 51 FS
+declarations match the verified candidate. Chromium 149.0.7827.55 passed 17
+supported public filesystem checks. Firefox and WebKit verification remains
+pending. Browser SafeJS/safe-bash execution, safe-bash runtime migration, removal
 of old copies and the `safe-js` rename remain pending.
 
 The package contains the existing implementations, not alternative backends.
@@ -20,7 +22,7 @@ In particular, `RealFileSystem({ root })` is the existing machine-directory
 adapter. There is no shell, plugin registry, interpreter, runtime host-call
 dispatcher, or implicit filesystem selection.
 
-## C public routes and platform selection
+## Public routes and platform selection
 
 | Public import | Node/default condition | `browser` condition |
 | --- | --- | --- |

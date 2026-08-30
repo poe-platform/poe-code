@@ -8,7 +8,7 @@ It is the engine behind Poe Code's pipelines, experiment loops, and superintende
 
 ## Verified filesystem integration
 
-`poe-code@12.0.5` publishes adapter injection through `makeFsModule` from
+`poe-code@12.0.7` publishes adapter injection through `makeFsModule` from
 `poe-code/safejs`, backed by the shared `poe-code/safe-fs` implementation.
 Both `poe-safejs` and `poe-code harness run` support `--fs-config <path>` for
 explicit memory or host-directory configuration. The scoped workspace names
@@ -16,8 +16,13 @@ explicit memory or host-directory configuration. The scoped workspace names
 
 Installed public runtime, TypeScript consumer and CLI checks passed on Node
 18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0. These public routes target
-Node.js; browser runtime support, the `safe-js` rename, safe-bash migration
-and removal of its legacy adapter copies remain pending.
+Node.js. Under the `browser` condition, `poe-code/safejs`, `poe-code/safejs/core`
+and `poe-code/safejs/cli` explicitly deny runtime imports and expose empty
+declarations; their Node exports remain available. Release C adds a portable
+filesystem-only graph at `poe-code/safe-fs` and `poe-code/safe-fs/core`, not a
+browser SafeJS SDK/runtime. Full browser SDK/runtime support, the `safe-js`
+rename, safe-bash migration and removal of its legacy adapter copies remain
+pending.
 
 ## Why use it
 

@@ -424,6 +424,8 @@ Loads, lints, and runs a harness file.
 3. Mirror the same name and exported names in `lint({ modules })` if you lint separately.
 4. For explicit boundary copying, use `deepCopyToSandbox` / `deepCopyFromSandbox`.
 
+`deepCopyFromSandbox` preserves repeated references to the same admitted sandbox regex as one native `RegExp` within that copy; equal-but-distinct regexes and separate copy calls remain distinct. This per-copy identity contract does not imply whole native graph or prototype equality.
+
 For external recovery of a pending host call, match the genuine `hostCallResumeProvider` request and supply its real outcome and required callback disposition. Convert a reconstructed source-function callback result with that active invocation's `context.toSandboxValue`, after awaiting the appropriate `context.replayed` result. The generic copier rejects native functions; the context converter is not a general function importer and rejects adapters from another invocation. Conversion does not invoke the returned source function or replace callback identity/order evidence. See [external reconciliation](CHECKPOINT_REPLAY.md#external-reconciliation).
 
 The runtime accepts plain objects or `Map`s at both levels:

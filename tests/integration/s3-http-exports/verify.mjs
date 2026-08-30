@@ -128,8 +128,9 @@ function bindPeer(manifest) {
   const locked = JSON.parse(readFileSync(join(snapshot, "package-lock.json"))).packages["node_modules/poe-code"];
   assert.equal(locked.version, manifest.devDependencies["poe-code"], "Required peer must match exact development pin");
   assert.equal(locked.resolved, `https://registry.npmjs.org/poe-code/-/poe-code-${locked.version}.tgz`, "Peer must identify the actual registry artifact");
-  assert.equal(typeof process.argv[4], "string", "WORKTREE requires the exact peer tarball path as fourth argument");
-  const bytes = regularBytes(realpathSync(resolve(process.argv[4])), 64 * 1024 * 1024);
+  const peerTarball = process.argv[4] ?? process.env.S3_HTTP_EXPORTS_PEER_TARBALL;
+  assert.equal(typeof peerTarball, "string", "Required-peer profiles need the exact peer tarball as fourth argument or S3_HTTP_EXPORTS_PEER_TARBALL");
+  const bytes = regularBytes(realpathSync(resolve(peerTarball)), 64 * 1024 * 1024);
   const integrity = `sha512-${createHash("sha512").update(bytes).digest("base64")}`;
   assert.equal(integrity, locked.integrity, "Required peer tarball SRI mismatch");
   const pinned = join(tempRoot, "canonical-peer.tgz"); writeFileSync(pinned, bytes);
@@ -249,11 +250,13 @@ try {
   report.sourceHashes = Object.fromEntries(sourceFiles.split("\n").map((filename) => [filename, digest(readFileSync(join(snapshot, filename)))]));
   }
   const manifest = JSON.parse(readFileSync(join(snapshot, "package.json"), "utf8"));
-  for (const kind of ["dependencies", "optionalDependencies", ...(worktree ? [] : ["peerDependencies"])]) {
+  const canonicalPeer = worktree || Object.keys(manifest.peerDependencies ?? {}).length > 0;
+  for (const kind of ["dependencies", "optionalDependencies", ...(canonicalPeer ? [] : ["peerDependencies"])]) {
     assert.deepEqual(Object.keys(manifest[kind] ?? {}), [], `${kind} must remain empty`);
   }
   const lock = JSON.parse(readFileSync(join(snapshot, "package-lock.json"), "utf8"));
-  const peer = worktree ? bindPeer(manifest) : undefined;
+  const peer = canonicalPeer ? bindPeer(manifest) : undefined;
+  if (peer && !worktree) report.profile = "authenticated-peer-committed-revision";
   if (peer) report.peer = { version: peer.version, integrity: peer.integrity, tarballSha256: peer.tarballSha256, metadataSha256: peer.metadataSha256 };
   assert.equal(lock.packages[""].name, manifest.name);
   assert.equal(lock.packages[""].version, manifest.version);
@@ -269,7 +272,7 @@ try {
   const artifact = packed[0];
   const tarball = join(tempRoot, artifact.filename);
   const packedFiles = artifact.files.map((entry) => entry.path);
-  for (const required of ["dist/index.js", "dist/index.d.ts", "dist/fs/s3/http/index.js", "dist/fs/s3/http/index.d.ts", ...(worktree ? [] : ["dist/fs/s3/http/types.d.ts"])]) {
+  for (const required of ["dist/index.js", "dist/index.d.ts", "dist/fs/s3/http/index.js", "dist/fs/s3/http/index.d.ts", ...(peer ? [] : ["dist/fs/s3/http/types.d.ts"])]) {
     assert.ok(packedFiles.includes(required), `Missing packed ${required}`);
   }
   assert.ok(packedFiles.every((filename) => !/^(src|tests|node_modules)\//u.test(filename)));
@@ -277,7 +280,7 @@ try {
     integrity: artifact.integrity, sha256: digest(readFileSync(tarball)), runtimeDependencies: {},
     exports: manifest.exports, files: packedFiles };
   writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "s3-http-export-consumer", private: true, type: "module" }));
-  run("offline tarball install", "npm", ["install", "--offline", "--ignore-scripts", "--omit=dev", "--no-package-lock", "--no-audit", "--no-fund", ...(worktree ? ["--legacy-peer-deps"] : []), tarball], consumer);
+  run("offline tarball install", "npm", ["install", "--offline", "--ignore-scripts", "--omit=dev", "--no-package-lock", "--no-audit", "--no-fund", ...(peer ? ["--legacy-peer-deps"] : []), tarball], consumer);
   if (peer) cpSync(peer.root, join(consumer, "node_modules/poe-code"), { recursive: true });
   const installedRoot = join(consumer, "node_modules/virtual-bash");
   assert.equal(lstatSync(installedRoot).isSymbolicLink(), false);
@@ -321,7 +324,7 @@ try {
       assertBoundFile(consumer, binding, relative(consumer, canonical));
     }
   }
-  for (const entrypoint of ["dist/index.d.ts", "dist/fs/s3/http/index.d.ts", ...(worktree ? [] : ["dist/fs/s3/http/types.d.ts"])]) {
+  for (const entrypoint of ["dist/index.d.ts", "dist/fs/s3/http/index.d.ts", ...(peer ? [] : ["dist/fs/s3/http/types.d.ts"])]) {
     assert.ok(typeFiles.includes(join(installedRoot, entrypoint)), `Types did not resolve ${entrypoint}`);
   }
   report.typecheck = { compilerOptions, files: typeFiles, rootAndSubpathTypes: 4, sourceFallback: false };
@@ -337,7 +340,7 @@ try {
     finally { writeFileSync(filename, original); }
     report.typecheck.peerDeclarationTamperRejected = true;
     for (const path of Object.keys(binding.files)) assertBoundFile(consumer, binding, path);
-    assert.deepEqual(captureWorktree(), report.worktree, "Live worktree inputs changed during qualification");
+    if (worktree) assert.deepEqual(captureWorktree(), report.worktree, "Live worktree inputs changed during qualification");
   }
   for (const [filename, hash] of Object.entries(report.fixtures)) assert.equal(digest(readFileSync(join(fixtureRoot, filename))), hash, `Harness input changed: ${filename}`);
   report.status = "pass";

@@ -31,23 +31,32 @@ verification runner requires Node >=22.15 for synchronous module-resolution
 hooks; captured evidence uses Node22.22.2. This tooling requirement does not
 change the library's existing Node>=22 engine declaration.
 
-### Required-peer worktree profile
+### Required-peer profiles
 
 To qualify the uncommitted canonical-FS migration instead of historical HEAD:
 
 ```sh
-node tests/integration/s3-http-exports/verify.mjs WORKTREE /tmp/s3-worktree.json /absolute/path/poe-code-12.0.5.tgz
+node tests/integration/s3-http-exports/verify.mjs WORKTREE /tmp/s3-worktree.json /absolute/path/poe-code-13.0.0.tgz
+node tests/integration/s3-http-exports/verify.mjs HEAD /tmp/s3-committed.json /absolute/path/poe-code-13.0.0.tgz
+S3_HTTP_EXPORTS_PEER_TARBALL=/absolute/path/poe-code-13.0.0.tgz node --import tsx --test tests/integration/s3-http-exports/exports.test.ts
 ```
 
 The fourth argument is an already downloaded, actual published peer tarball. Its
 version must match the exact development pin and lockfile; its complete SHA512
 SRI must match the registry integrity in that lockfile and the required,
-nonoptional peer range must admit it. The example uses the migration's 12.0.5
+nonoptional peer range must admit it. The example uses the migration's 13.0.0
 pin; selecting another release requires an independently prepared matching
 manifest, lockfile and cached tooling, not a version override or guessed release.
-No new environment variable selects this profile. `S3_HTTP_EXPORTS_REVISION`
-continues to select the historical revision in the existing test wrapper; invoke
-the runner directly for WORKTREE and its explicit peer artifact argument.
+`S3_HTTP_EXPORTS_REVISION` selects the committed revision in the existing test
+wrapper. `S3_HTTP_EXPORTS_PEER_TARBALL` supplies the explicit artifact when the
+fourth runner argument is absent; it does not override the version, SRI or
+required-peer policy. Neither variable provides credentials or enables network.
+A committed source manifest with a required peer selects
+`authenticated-peer-committed-revision`, retains its real `sourceCommit`, and
+receives the same strict artifact/runtime/declaration authentication as WORKTREE.
+Historical zero-peer commits retain their original profile and private
+declaration assertions without requiring an artifact. A missing or mismatched
+artifact fails; no source fallback or blanket dependency admission is added.
 
 WORKTREE enumerates actual Git tracked/untracked nonignored product inputs and
 tracked deletions using NUL-separated records. It captures bounded regular-file
@@ -76,7 +85,7 @@ peer's public transitive declaration closure, including its explicitly mapped
 Node `#safe-fs-platform` policy when present. A declaration byte-tamper control
 must fail. No runtime module may be loaded from a declaration/source fallback.
 
-The runner archives only committed product/build inputs into a fresh temporary
+The committed profiles archive only committed product/build inputs into a fresh temporary
 directory, uses cached development tooling for a clean build, then packs and
 installs the actual tarball offline into a second directory. It does not link
 the product into the consumer or run package lifecycle scripts. The child

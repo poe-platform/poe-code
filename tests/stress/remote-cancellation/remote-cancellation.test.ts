@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { setImmediate as turn } from "node:timers/promises";
 import { S3RenameError, toByteSource } from "../../../src/index.js";
 import type { S3HeadOutput } from "../../../src/index.js";
-import type { S3StreamGetOutput } from "../../../src/fs/s3/transport.js";
+import type { S3StreamGetOutput } from "poe-code/safe-fs";
 import {
   audit, bounded, bytes, canceled, gate, httpFixture, injectedDav, observe, original,
   producer, s3Fixture, saved, shell, shellFailure, text,

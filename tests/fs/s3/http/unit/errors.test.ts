@@ -4,7 +4,7 @@ import { request as nodeRequest } from "node:http";
 import type { ClientRequest, IncomingMessage } from "node:http";
 import { setTimeout as delay } from "node:timers/promises";
 import test from "node:test";
-import { S3FileSystem } from "../../../../../src/fs/s3/filesystem.js";
+import { S3FileSystem } from "../../../../../src/fs/s3/index.js";
 import { bodyBytes, key, serverFor } from "./helpers.js";
 
 for (const [status, code, errno] of [[403, "AccessDenied", "EACCES"], [404, "NoSuchKey", "ENOENT"],

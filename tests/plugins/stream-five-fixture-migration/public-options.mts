@@ -33,15 +33,24 @@ assert.equal(createSplitCommands, splitFactory);
 assert.equal(splitCommands, splitPlugin);
 assert.deepEqual(formatFactory(formatOptions).map(command => command.name), ["seq", "nl", "rev", "unexpand"]);
 assert.deepEqual(splitFactory(splitOptions).map(command => command.name), ["split"]);
-assert.equal(createAgentCommands(aggregate).length, 76);
-assert.equal(createAgentCommands(aggregate).at(-1)?.name, "expr");
+const expectedNames = [
+  "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch", "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath",
+  "ls", "cat", "head", "tail", "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "sed", "awk", "jq", "rg",
+  "base64", "base32", "xxd", "od", "sha256sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+  "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file",
+  "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "git",
+];
+assert.deepEqual(createAgentCommands(aggregate).map(command => command.name), expectedNames);
+assert.equal(createAgentCommands(aggregate).length, expectedNames.length);
+assert.equal(createAgentCommands(aggregate).at(75)?.name, "expr");
 
 const instance = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(aggregate));
 try {
   const result = await instance.exec("seq 2 | split -l1; cat xaa xab");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "1\n2\n");
-  assert.equal(instance.commands.list().length, 76);
+  assert.deepEqual(instance.commands.list().map(command => command.name), expectedNames);
+  assert.equal(instance.commands.list().length, expectedNames.length);
 } finally { await instance.dispose(); }
 
 const standaloneFormat = new Shell({ fs: createMemoryFileSystem() }).use(formatPlugin(formatOptions));
@@ -62,4 +71,4 @@ try {
 } finally { await standaloneSplit.dispose(); }
 const resolutions = Object.fromEntries(["virtual-bash", "virtual-bash/commands/stream-format", "virtual-bash/commands/split"].map(name => [name, import.meta.resolve(name)]));
 for (const resolution of Object.values(resolutions)) assert.ok(resolution.includes("/consumer/node_modules/virtual-bash/dist/"), resolution);
-console.log(JSON.stringify({ resolutions, defaultCount: 76, standaloneFormatCount: 4, standaloneSplitCount: 1, aggregatePipeline: "1\n2\n", formatReplaceTopLevel, splitReplaceTopLevel }));
+console.log(JSON.stringify({ resolutions, defaultCount: expectedNames.length, standaloneFormatCount: 4, standaloneSplitCount: 1, aggregatePipeline: "1\n2\n", formatReplaceTopLevel, splitReplaceTopLevel }));

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import type { TestContext } from "node:test";
 import test from "node:test";
-import { S3FileSystem } from "../../../../../src/fs/s3/filesystem.js";
+import { S3FileSystem } from "../../../../../src/fs/s3/index.js";
 import { MemoryFileSystem } from "../../../../../src/fs/memory/index.js";
 import { MountFileSystem } from "../../../../../src/fs/mount/index.js";
 import { Shell } from "../../../../../src/shell/index.js";

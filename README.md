@@ -58,7 +58,26 @@ detail, E09/partial-family coverage, individual internal-loader exits and univer
 process/resource accounting remain qualified; no full Node/Bash or overall-winner
 claim follows. Original author/module failures remain preserved.
 
-TypeScript, ESM, Node.js 22 or newer; zero runtime dependencies. Development uses
+TypeScript, ESM, Node.js 22 or newer. Runtime filesystem contracts and adapters
+come from the required `poe-code >=13.0.0` peer; development pins the published
+`poe-code@13.0.0`. This is a runtime package requirement, not zero-dependency distribution.
+The existing filesystem subpaths are compatibility re-exports of
+`poe-code/safe-fs`, not independently bundled implementations. Shell and injected
+SafeJS hooks must resolve one installed canonical module graph. Independently
+bundled consumers must externalize that public route or share its emitted chunk.
+`makeSafeJsFsModule` now passes the original `{ adapter, cwd?, signal? }` to its
+explicitly injected factory. Use the public `makeFsModule` from the installed
+`poe-code/safe-js` peer, or a compatible host factory; legacy `{ fs }`-only factory
+stubs must migrate. This helper does not load or install a SafeJS engine.
+The legacy `poe-code/safejs` SDK route remains an identity-preserving alias.
+WebDAV request streaming in 13.0.0 fails with `ENOTSUP` before source access or
+I/O for undeclared custom fetch functions. Exact current-realm native fetch is
+probed automatically; a faithful native wrapper may explicitly declare
+`requestStreamSupport: "native"`, and a faithful custom streaming transport may
+declare `requestStreamSupport: true`. Neither declaration authenticates a
+wrapper or grants filesystem comparison authority. Do not opt in a transport
+that stringifies or otherwise corrupts streaming request bodies.
+Development uses
 TypeScript, `tsx`, and `node:test`. The package is currently private/unpublished;
 the repository directory is `safe-bash`, while the package name is `virtual-bash`.
 

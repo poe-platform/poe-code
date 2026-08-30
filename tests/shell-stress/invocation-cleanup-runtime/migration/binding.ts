@@ -3,7 +3,9 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { isBuiltin } from "node:module";
 import { dirname, join, posix, relative } from "node:path";
+import ts from "typescript";
 
 export const fixturePath = "tests/shell/invocation-cleanup-public.test.ts";
 export const probePath = "tests/shell-stress/invocation-cleanup-runtime/public-worker.mjs";
@@ -12,6 +14,71 @@ export const digest = (bytes: string | Uint8Array): string => createHash("sha256
 export type Hashes = Record<string, string>;
 export interface CommittedInputs { format: "public-cleanup-committed-v1"; revision: string; tree: string; files: Hashes }
 export interface CapturedInputs { files: Hashes; bytes: Map<string, Buffer> }
+export interface RequiredPeer {
+  name: "poe-code"; version: string; integrity: string; metadataPath: string; metadataSha256: string;
+  entries: Record<string, string>; files: Hashes; edges: Record<string, Record<string, string>>;
+}
+
+export async function captureRequiredPeer(snapshot: string, emittedHashes: Hashes, tools: Hashes): Promise<RequiredPeer> {
+  const root = JSON.parse(await readFile(join(snapshot, "package.json"), "utf8"));
+  assert.equal(typeof root.peerDependencies?.["poe-code"], "string", "Canonical runtime must be a declared peer");
+  assert.notEqual(root.peerDependenciesMeta?.["poe-code"]?.optional, true, "Canonical runtime peer must be required");
+  const locked = JSON.parse(await readFile(join(snapshot, "package-lock.json"), "utf8")).packages["node_modules/poe-code"];
+  const metadataPath = "node_modules/poe-code/package.json";
+  let size = 0;
+  const readPeer = async (path: string): Promise<Buffer> => {
+    assert.ok(path.startsWith("node_modules/poe-code/") && !path.split("/").includes(".."), `Peer path escaped: ${path}`);
+    const absolute = join(snapshot, path), stat = await lstat(absolute);
+    assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 8 * 1024 * 1024, `Peer input must be a bounded regular file: ${path}`);
+    assert.equal(await realpath(absolute), absolute, `Peer input must not traverse symlinks: ${path}`);
+    const bytes = await readFile(absolute);
+    size += bytes.length;
+    assert.ok(size <= 16 * 1024 * 1024, "Peer runtime closure exceeds byte bound");
+    assert.equal(digest(bytes), tools[path.slice("node_modules/".length)], `Peer differs from captured tools: ${path}`);
+    return bytes;
+  };
+  const metadata = await readPeer(metadataPath);
+  const peer = JSON.parse(metadata.toString()) as { name: string; version: string; exports: Record<string, { import?: string }> };
+  assert.equal(peer.name, "poe-code");
+  assert.equal(peer.version, root.devDependencies?.["poe-code"], "Runtime peer differs from exact development pin");
+  assert.equal(peer.version, locked?.version, "Runtime peer differs from locked version");
+  assert.match(locked.integrity, /^sha512-[A-Za-z0-9+/]+={0,2}$/u, "Runtime peer must have registry integrity");
+  const entries: Record<string, string> = {};
+  for (const path of Object.keys(emittedHashes).filter(path => path.endsWith(".js"))) {
+    const bytes = await readFile(join(snapshot, path));
+    assert.equal(digest(bytes), emittedHashes[path], `Emitted bytes changed before peer capture: ${path}`);
+    for (const { fileName } of ts.preProcessFile(bytes.toString(), true).importedFiles) {
+      if (fileName !== "poe-code" && !fileName.startsWith("poe-code/")) continue;
+      assert.equal(fileName, "poe-code/safe-fs", `Unreviewed canonical runtime entry: ${fileName}`);
+      const target = peer.exports["./safe-fs"]?.import;
+      assert.equal(typeof target, "string", "Canonical runtime requires an explicit public import target");
+      assert.ok(target!.startsWith("./packages/") && target!.includes("/dist/") && !target!.split("/").includes(".."), "Canonical public target is not a built package entry");
+      entries[fileName] = posix.join("node_modules/poe-code", target!);
+    }
+  }
+  assert.deepEqual(Object.keys(entries), ["poe-code/safe-fs"], "Canonical public runtime entry is missing");
+  const files: Hashes = {}, edges: Record<string, Record<string, string>> = {};
+  const pending = Object.values(entries);
+  while (pending.length) {
+    const path = pending.pop()!;
+    if (Object.hasOwn(files, path)) continue;
+    assert.ok(Object.keys(files).length < 128, "Peer runtime closure exceeds file bound");
+    assert.ok(path.startsWith("node_modules/poe-code/packages/") && path.includes("/dist/") && (path.endsWith(".js") || path.endsWith(".mjs")), `Peer closure requires built ESM: ${path}`);
+    const bytes = await readPeer(path);
+    files[path] = digest(bytes);
+    const imports: Record<string, string> = {};
+    for (const { fileName } of ts.preProcessFile(bytes.toString(), true).importedFiles) {
+      if (isBuiltin(fileName)) continue;
+      assert.ok(fileName.startsWith("./") || fileName.startsWith("../"), `Unreviewed peer runtime dependency: ${fileName}`);
+      const target = posix.normalize(posix.join(posix.dirname(path), fileName));
+      assert.ok(target.startsWith("node_modules/poe-code/packages/") && target.includes("/dist/"), `Peer runtime edge escapes built package: ${fileName}`);
+      imports[fileName] = target;
+      pending.push(target);
+    }
+    edges[path] = imports;
+  }
+  return { name: "poe-code", version: peer.version, integrity: locked.integrity, metadataPath, metadataSha256: digest(metadata), entries, files, edges };
+}
 
 export async function configurationPaths(read: (path: string) => Promise<string>): Promise<string[]> {
   const paths = new Set<string>();
@@ -128,6 +195,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
     assert.deepEqual((await captureInputs(snapshot)).files, captured.files, "Build changed captured inputs");
     assert.deepEqual(await census(join(snapshot, "node_modules")), tools, "Build changed compiler dependencies");
     const emitted = await census(join(snapshot, "dist"), snapshot);
+    const requiredPeer = await captureRequiredPeer(snapshot, emitted, tools);
     const manifest = {
       runtimeCommit: expected?.revision ?? null,
       callbackCommit: null,
@@ -142,7 +210,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       },
       snapshot, node: process.version,
       sourceHashes: Object.fromEntries(Object.entries(captured.files).filter(([path]) => path.startsWith("src/"))),
-      emittedHashes: emitted, probeHash: captured.files[probePath], packageHash: captured.files["package.json"],
+      emittedHashes: emitted, requiredPeer, probeHash: captured.files[probePath], packageHash: captured.files["package.json"],
       compilerVersion: (JSON.parse(await readFile(join(snapshot, "node_modules/typescript/package.json"), "utf8")) as { version: string }).version,
       compilerInputs: tools,
       build: { status: build.status, stdout: build.stdout, stderr: build.stderr },
@@ -155,6 +223,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       assert.deepEqual((await captureInputs(snapshot)).files, captured.files, "Captured source was changed after build");
       assert.deepEqual(await census(join(snapshot, "dist"), snapshot), emitted, "Built public artifacts changed after compilation");
       assert.equal(await readFile(manifestPath, "utf8"), manifestBytes, "Public source manifest changed after capture");
+      assert.deepEqual(await captureRequiredPeer(snapshot, emitted, tools), requiredPeer, "Required runtime peer changed after capture");
     };
     await verify();
     return { snapshot, manifestPath, probe: join(snapshot, probePath), manifest, verify, dispose };

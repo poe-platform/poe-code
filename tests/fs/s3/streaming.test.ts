@@ -6,7 +6,8 @@ import type { ErrnoCode } from "../../../src/contracts/errors.js";
 import { collectBytes, toByteSource } from "../../../src/contracts/io.js";
 import type { ByteSource } from "../../../src/contracts/io.js";
 import { MockS3Client, S3FileSystem, S3ServiceError, createS3Transport } from "../../../src/fs/s3/index.js";
-import type { S3StreamGetOutput, S3Transport } from "../../../src/fs/s3/transport.js";
+import type { S3StreamGetOutput } from "poe-code/safe-fs";
+import type { S3Transport } from "../../../src/fs/s3/index.js";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
 const errno = (code: ErrnoCode) => (error: unknown) => isFsError(error, code);

@@ -14,14 +14,16 @@ interpreter: never to host `eval`, `Function`, a VM evaluator, or a subprocess.
 
 ## Actual integration boundary
 
-The injected APIs were inspected and exercised from the existing local
-`poe-code/packages/safejs` package (`@poe-code/safejs`, private version `0.0.1`).
-The command does not guess an API or install/load that private package itself.
+The injected APIs use the published `poe-code@13.0.0` public SDK route
+`poe-code/safe-js`. The package requires the `poe-code >=13.0.0` peer and pins
+that exact version for development. The command does not install or implicitly
+load an interpreter. Its filesystem adapters are compatibility re-exports of
+`poe-code/safe-fs`; the host and shell must share that installed module graph.
 The host supplies the legitimate `run`, `Budget`, `makeFsModule` and
 `declareHostOperation` implementations:
 
 ```ts
-import { Budget, declareHostOperation, makeFsModule, run } from "@poe-code/safejs";
+import { Budget, declareHostOperation, makeFsModule, run } from "poe-code/safe-js";
 import { MemoryFileSystem, Shell, standardCommands } from "./src/index.js";
 import { safeJsCommands } from "./src/commands/safejs/index.js";
 

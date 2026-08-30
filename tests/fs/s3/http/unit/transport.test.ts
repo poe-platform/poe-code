@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { request as nodeRequest } from "node:http";
 import test from "node:test";
 import { createS3HttpTransport } from "../../../../../src/fs/s3/http/index.js";
-import { encodeCopySource } from "../../../../../src/fs/s3/transport.js";
+import { encodeCopySource } from "../../../../../src/fs/s3/index.js";
 import { bodyBytes, clock, copyResult, credentials, date, key, serverFor, verifySignature } from "./helpers.js";
 
 test("real TCP wire preserves dot segments, repeated slashes, UTF-8 and literal percent keys", async context => {

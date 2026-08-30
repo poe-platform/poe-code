@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
 import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
+import ts from "typescript";
 import { consumerGroups, currentSourceConsumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { validateRuntimeCoverage } from "../tests/plugins/qualified-current-release/runtime-coverage.mjs";
 
@@ -11,7 +12,7 @@ const within = (directory, path) => {
   return local !== ".." && !local.startsWith(`..${sep}`) && !isAbsolute(local);
 };
 
-export function createBuiltPackageBinding(root) {
+export function createBuiltPackageBinding(root, { includePeer = true } = {}) {
   const metadata = readFileSync(join(root, "package.json")), declarations = new Map();
   const walk = directory => {
     for (const name of readdirSync(join(root, directory))) {
@@ -24,25 +25,134 @@ export function createBuiltPackageBinding(root) {
   assert.equal(lstatSync(join(root, "dist")).isSymbolicLink(), false, "candidate dist must not redirect to another build");
   walk("dist");
   assert.ok(declarations.size > 0, "candidate declarations are missing");
-  return { metadataSha256: sha256(metadata), exports: JSON.parse(metadata).exports, declarations };
+  const manifest = JSON.parse(metadata);
+  return { name: manifest.name, metadataSha256: sha256(metadata), exports: manifest.exports, declarations,
+    peer: includePeer && manifest.peerDependencies?.["poe-code"] ? createPeerBinding(root, manifest, declarations) : undefined };
+}
+
+function nodeTypeTarget(entry) {
+  if (typeof entry === "string" || entry === null) return entry;
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) return undefined;
+  for (const [condition, value] of Object.entries(entry)) {
+    if (!["types", "node", "import", "default"].includes(condition)) continue;
+    const target = nodeTypeTarget(value);
+    if (target !== undefined) return target;
+  }
 }
 
 function declaredTypePath(specifier, binding) {
-  const key = specifier === "virtual-bash" ? "." : `.${specifier.slice("virtual-bash".length)}`;
-  if (binding.exports[key]) return binding.exports[key].types;
+  const name = binding.name ?? "virtual-bash";
+  const key = specifier === name ? "." : `.${specifier.slice(name.length)}`;
+  if (binding.exports[key]) return nodeTypeTarget(binding.exports[key].types);
   for (const [pattern, entry] of Object.entries(binding.exports)) {
     const parts = pattern.split("*");
     if (parts.length === 2 && key.startsWith(parts[0]) && key.endsWith(parts[1])) {
-      return entry.types?.replace("*", key.slice(parts[0].length, key.length - parts[1].length));
+      return nodeTypeTarget(entry.types)?.replace("*", key.slice(parts[0].length, key.length - parts[1].length));
     }
+  }
+}
+
+function createPeerBinding(root, manifest, declarations) {
+  assert.notEqual(manifest.peerDependenciesMeta?.["poe-code"]?.optional, true, "canonical peer must be required");
+  const directory = realpathSync(join(root, "node_modules/poe-code"));
+  const metadata = readFileSync(join(directory, "package.json")), peer = JSON.parse(metadata);
+  const locked = JSON.parse(readFileSync(join(root, "package-lock.json"))).packages["node_modules/poe-code"];
+  assert.equal(peer.name, "poe-code");
+  assert.equal(peer.version, manifest.devDependencies["poe-code"], "peer qualification requires the exact development pin");
+  assert.equal(peer.version, locked.version, "installed peer and lockfile disagree");
+  assert.match(locked.integrity, /^sha512-/u, "peer must have registry integrity");
+  const binding = { name: peer.name, version: peer.version, integrity: locked.integrity, directory,
+    metadataSha256: sha256(metadata), exports: peer.exports, declarations: new Map(), publicEntries: new Map(), privateEntries: new Map() };
+  const options = { module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext, target: ts.ScriptTarget.ES2022 };
+  const publicEntry = specifier => {
+    const target = declaredTypePath(specifier, binding);
+    assert.equal(typeof target, "string", `peer import must select an explicit public type export: ${specifier}`);
+    const filename = resolve(directory, target);
+    assert.ok(within(directory, filename) && target.includes("/dist/"), `peer public entry is not a built declaration: ${specifier}`);
+    binding.publicEntries.set(specifier, relative(directory, filename));
+    return filename;
+  };
+  const pending = [];
+  for (const filename of declarations.keys()) {
+    const imports = ts.preProcessFile(readFileSync(join(root, filename), "utf8"), true).importedFiles;
+    for (const { fileName } of imports) if (fileName === peer.name || fileName.startsWith(`${peer.name}/`)) pending.push(publicEntry(fileName));
+  }
+  while (pending.length) {
+    const filename = pending.pop(), local = relative(directory, filename);
+    if (binding.declarations.has(local)) continue;
+    assert.ok(within(directory, filename) && /\.d\.(?:ts|mts|cts)$/u.test(filename), `peer closure must contain declarations only: ${filename}`);
+    assert.equal(lstatSync(filename).isSymbolicLink(), false, `peer declaration must not redirect: ${filename}`);
+    const bytes = readFileSync(filename);
+    binding.declarations.set(local, sha256(bytes));
+    const inputs = ts.preProcessFile(bytes.toString(), true);
+    assert.equal(inputs.referencedFiles.length, 0, "unreviewed peer path-reference closure");
+    assert.ok(inputs.typeReferenceDirectives.every(reference => reference.fileName === "node"), "unreviewed peer ambient type dependency");
+    for (const { fileName } of inputs.importedFiles) {
+      if (fileName.startsWith("node:")) continue;
+      if (fileName === peer.name || fileName.startsWith(`${peer.name}/`)) {
+        pending.push(publicEntry(fileName));
+        continue;
+      }
+      const privatePolicy = fileName === "#safe-fs-platform";
+      assert.ok(fileName.startsWith(".") || privatePolicy, `unreviewed transitive peer package: ${fileName}`);
+      let privateTarget;
+      if (privatePolicy) {
+        const target = nodeTypeTarget(peer.imports?.[fileName]?.types);
+        assert.equal(typeof target, "string", `peer policy requires an explicit private type mapping: ${fileName}`);
+        privateTarget = resolve(directory, target);
+        assert.ok(within(directory, privateTarget) && target.includes("/dist/") && /\.d\.(?:ts|mts|cts)$/u.test(target), `peer policy is not a built declaration: ${fileName}`);
+        binding.privateEntries.set(fileName, relative(directory, privateTarget));
+      }
+      const resolved = ts.resolveModuleName(fileName, filename, options, ts.sys, undefined, undefined, ts.ModuleKind.ESNext).resolvedModule;
+      assert.ok(resolved, `unresolved peer declaration: ${fileName}`);
+      if (privatePolicy) assert.equal(resolved.resolvedFileName, privateTarget, `peer policy selected the wrong declaration: ${fileName}`);
+      pending.push(resolved.resolvedFileName);
+    }
+  }
+  assert.ok(binding.publicEntries.size && binding.declarations.size, "canonical public declaration closure is missing");
+  return binding;
+}
+
+function installedPeer(packageRoot, binding) {
+  let directory = packageRoot;
+  while (true) {
+    const target = join(directory, "node_modules", binding.name);
+    if (existsSync(join(target, "package.json"))) return realpathSync(target);
+    const parent = resolve(directory, "..");
+    assert.notEqual(parent, directory, "required canonical peer is not installed");
+    directory = parent;
+  }
+}
+
+function assertPeerResolution(specifier, target, importer, peerRoot, binding) {
+  const publicImport = specifier === binding.name || specifier.startsWith(`${binding.name}/`);
+  const fromPeer = importer && existsSync(importer) && within(peerRoot, realpathSync(importer));
+  const privateImport = specifier.startsWith("#");
+  if (!publicImport && !within(peerRoot, target) && !(fromPeer && (specifier.startsWith(".") || privateImport))) return;
+  assert.ok(within(peerRoot, target), `foreign peer declaration/source fallback: ${specifier} -> ${target}`);
+  const expected = binding.declarations.get(relative(peerRoot, target));
+  assert.ok(expected, `peer resolution is outside the authenticated public closure: ${specifier} -> ${target}`);
+  assert.equal(sha256(readFileSync(target)), expected, `peer declaration bytes changed: ${target}`);
+  if (privateImport) {
+    assert.ok(fromPeer, `private policy must originate in a peer declaration: ${specifier}`);
+    const declared = binding.privateEntries?.get(specifier);
+    assert.equal(typeof declared, "string", `unadmitted peer private type mapping: ${specifier}`);
+    assert.equal(target, resolve(peerRoot, declared), `peer policy selected the wrong declaration: ${specifier}`);
+  }
+  if (publicImport) {
+    const declared = binding.publicEntries.get(specifier);
+    assert.equal(typeof declared, "string", `unadmitted peer public subpath: ${specifier}`);
+    assert.equal(target, resolve(peerRoot, declared), `peer subpath selected the wrong declaration: ${specifier}`);
   }
 }
 
 function assertCandidateResolutions(stdout, installed, binding) {
   const packageRoot = realpathSync(installed), dist = join(packageRoot, "dist");
-  const actual = createBuiltPackageBinding(packageRoot);
+  const actual = createBuiltPackageBinding(packageRoot, { includePeer: false });
   assert.equal(actual.metadataSha256, binding.metadataSha256, "candidate package metadata changed");
   assert.deepEqual(actual.declarations, binding.declarations, "candidate declaration bytes or file set changed");
+  const peerRoot = binding.peer && installedPeer(packageRoot, binding.peer);
+  if (peerRoot) assert.equal(sha256(readFileSync(join(peerRoot, "package.json"))), binding.peer.metadataSha256, "peer metadata changed");
   let importer, checked = 0;
   for (const line of stdout.split("\n")) {
     const start = /^======== Resolving module '.*' from '(.*)'\. ========$/u.exec(line);
@@ -51,6 +161,7 @@ function assertCandidateResolutions(stdout, installed, binding) {
     if (!match) continue;
     const [, specifier, target] = match;
     const physicalTarget = realpathSync(target);
+    if (peerRoot) assertPeerResolution(specifier, physicalTarget, importer, peerRoot, binding.peer);
     const publicImport = /^virtual-bash(?:\/|$)/u.test(specifier);
     const localLeaf = /(?:^|\/)node_modules\/virtual-bash\//u.test(specifier);
     const relativeDeclaration = /^\.\.?\//u.test(specifier) && importer && existsSync(importer) && within(dist, realpathSync(importer));
@@ -99,6 +210,17 @@ export function checkCurrentConsumerTypes(root, temporary, compile, binding = cr
   mkdirSync(installed, { recursive: true });
   cpSync(join(root, "package.json"), join(installed, "package.json"));
   cpSync(join(root, "dist"), join(installed, "dist"), { recursive: true });
+  if (binding.peer) {
+    const peer = join(consumer, "node_modules", binding.peer.name);
+    mkdirSync(peer, { recursive: true });
+    cpSync(join(binding.peer.directory, "package.json"), join(peer, "package.json"));
+    for (const [path, expected] of binding.peer.declarations) {
+      const source = join(binding.peer.directory, path);
+      assert.equal(sha256(readFileSync(source)), expected, `peer changed before admission: ${path}`);
+      mkdirSync(resolve(peer, path, ".."), { recursive: true });
+      cpSync(source, join(peer, path));
+    }
+  }
   assert.equal(existsSync(join(installed, "src")), false);
   writeFileSync(join(consumer, "package.json"), JSON.stringify({ private: true, type: "module" }));
   const groups = [], negativeTypes = [];

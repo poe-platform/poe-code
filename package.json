@@ -145,6 +145,10 @@
   "devDependencies": {
     "@types/node": "^22.20.1",
     "tsx": "^4.23.12",
-    "typescript": "5.9"
+    "typescript": "5.9",
+    "poe-code": "13.0.0"
+  },
+  "peerDependencies": {
+    "poe-code": ">=13.0.0"
   }
 }

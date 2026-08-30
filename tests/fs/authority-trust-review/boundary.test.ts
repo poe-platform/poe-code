@@ -3,7 +3,7 @@ import test from "node:test";
 import { FsError } from "../../../src/contracts/errors.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../../src/fs/mount/index.js";
-import { compareEntries } from "../../../src/fs/mount/comparison.js";
+import { compareEntries } from "../public-comparison.js";
 import { MockS3Client, S3FileSystem, S3ServiceError, createS3Transport } from "../../../src/fs/s3/index.js";
 
 const bytes = (value: string) => new TextEncoder().encode(value);

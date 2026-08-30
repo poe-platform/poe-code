@@ -243,7 +243,7 @@ describe("compile policy drafts", () => {
     };
     Object.defineProperty(regex, "lastIndex", { value: cursor });
     const copied = deepCopyFromSandbox([regex, regex]) as RegExp[];
-    expect(copied[0]).not.toBe(copied[1]);
+    expect(copied[0]).toBe(copied[1]);
     expect(copied[0].source).toBe("a");
     expect(copied[0].flags).toBe("g");
     expect(copied[0].lastIndex).toBe(cursor);

@@ -787,10 +787,13 @@ function copyFromSandbox(
     const guard = new RegexCompileGuard(options.compilation);
     try {
       guard.preflight(source, flags);
+      const existing = state.seen.get(value);
+      if (existing !== undefined) return existing;
       guard.allocate(1 + source.length + flags.length);
       const regex = new RegExp(source, flags);
       regex.lastIndex = lastIndex;
       guard.retainScratch();
+      state.seen.set(value, regex);
       return regex;
     } finally {
       guard.close();

@@ -427,7 +427,7 @@ describe("compile preimage policy", () => {
     const cursor = { [Symbol.toPrimitive]: vi.fn(() => 0) };
     Object.defineProperty(regex, "lastIndex", { value: cursor });
     const copy = deepCopyFromSandbox([regex, regex]) as RegExp[];
-    expect(copy[0]).not.toBe(copy[1]);
+    expect(copy[0]).toBe(copy[1]);
     expect(copy[0].source).toBe("a");
     expect(copy[0].flags).toBe("g");
     expect(copy[0].lastIndex).toBe(cursor);

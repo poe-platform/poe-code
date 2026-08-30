@@ -1,14 +1,106 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import test from "node:test";
 import { createFsFromVolume, Volume } from "memfs";
+import ts from "typescript";
 
 const peerModule = new URL("../../plugins/qualified-current-release/peer.mjs", import.meta.url).href;
 const metadataModule = new URL("../../commands/metadata-stress/canonical-env/runner.mjs", import.meta.url).href;
 const digest = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 const runtimePath = "packages/safe-fs/dist/index.js";
 const declarationPath = "packages/safe-fs/dist/index.d.ts";
+
+const expectedCurrentCommands = [
+  "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
+  "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
+  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
+  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
+  "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+  "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown",
+  "du", "expr", "which", "timeout", "apply_patch", "git",
+];
+
+async function generatedCatalogGuards() {
+  const profileModule = new URL("../../plugins/stream-five-public/current-profile.mjs", import.meta.url).href;
+  const { currentProfile } = await import(profileModule);
+  const original = readFileSync(new URL("../../commands/stream-next-stress/independent.review.ts", import.meta.url));
+  const profile = currentProfile(original);
+  const parsed = ts.createSourceFile("current-profile.ts", profile.source, ts.ScriptTarget.Latest, true);
+  const declarations: ts.VariableDeclaration[] = [];
+  const guards: ts.ExpressionStatement[] = [];
+  const visit = (node: ts.Node) => {
+    if (ts.isVariableDeclaration(node) && node.name.getText(parsed) === "expectedCurrentCommands") declarations.push(node);
+    if (ts.isExpressionStatement(node) && ts.isCallExpression(node.expression)
+      && node.expression.expression.getText(parsed) === "assert.deepEqual"
+      && node.expression.arguments[1]?.getText(parsed) === "expectedCurrentCommands") guards.push(node);
+    ts.forEachChild(node, visit);
+  };
+  visit(parsed);
+  assert.equal(declarations.length, 1, "the generated expectation must be independently declared");
+  const initializer = declarations[0]!.initializer;
+  assert.ok(initializer && ts.isArrayLiteralExpression(initializer));
+  assert.ok(initializer.elements.every(ts.isStringLiteral));
+  assert.deepEqual(initializer.elements.map(element => (element as ts.StringLiteral).text), expectedCurrentCommands);
+  assert.equal(expectedCurrentCommands.length, 80);
+  assert.equal(new Set(expectedCurrentCommands).size, 80);
+  assert.equal(guards.length, 3, "factory, registered dispatch, and final factory each verify the full catalog");
+  return guards.map(guard => {
+    const script = `const expectedCurrentCommands = ${initializer.getText(parsed)};\n${guard.getText(parsed)}`;
+    const output = ts.transpileModule(script, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+    return new Function("assert", "createAgentCommands", "instance", output);
+  });
+}
+
+test("generated current stream catalog accepts the independent exact 80 names at all three boundaries", async () => {
+  for (const guard of await generatedCatalogGuards()) {
+    const definitions = expectedCurrentCommands.map(name => ({ name }));
+    guard(assert, () => definitions, { commands: { list: () => definitions } });
+  }
+});
+
+for (const scenario of ["substitution", "duplicate", "order", "missing", "extra"] as const) {
+  test(`generated current stream catalog rejects ${scenario}, not merely a count mismatch`, async () => {
+    for (const guard of await generatedCatalogGuards()) {
+      const names = [...expectedCurrentCommands];
+      const definitions = () => names.map(name => ({ name }));
+      const instance = { commands: { list: definitions } };
+      guard(assert, definitions, instance);
+      if (scenario === "substitution") names[0] = "unreviewed";
+      if (scenario === "duplicate") names[0] = names[1]!;
+      if (scenario === "order") [names[0], names[1]] = [names[1]!, names[0]!];
+      if (scenario === "missing") names.pop();
+      if (scenario === "extra") names.push("custom");
+      assert.throws(() => guard(assert, definitions, instance), { code: "ERR_ASSERTION" });
+    }
+  });
+}
+
+test("current stream transformation preserves the sealed input and all 18 registered cases", async () => {
+  const profileModule = new URL("../../plugins/stream-five-public/current-profile.mjs", import.meta.url).href;
+  const { currentProfile, historicalHarnessSha256 } = await import(profileModule);
+  const original = readFileSync(new URL("../../commands/stream-next-stress/independent.review.ts", import.meta.url));
+  const before = original.slice();
+  assert.equal(digest(original), "6fa5b5e445500e0ab29be962e9c5ac39a7e2e830fc736fd344e0580778c0f3ae");
+  assert.equal(historicalHarnessSha256, digest(original));
+  const profile = currentProfile(original);
+  assert.equal(profile.originalSha256, digest(original));
+  assert.equal(profile.currentSha256, digest(profile.source));
+  const parsed = ts.createSourceFile("current-profile.ts", profile.source, ts.ScriptTarget.Latest, true);
+  const registrations = parsed.statements.filter(statement => ts.isExpressionStatement(statement)
+    && ts.isCallExpression(statement.expression) && ["contract", "test"].includes(statement.expression.expression.getText(parsed)));
+  assert.equal(registrations.length, 18);
+  let replayed = original.toString();
+  for (const delta of profile.deltas) {
+    assert.equal(replayed.split(delta.before).length, 2);
+    replayed = replayed.replace(delta.before, delta.after);
+  }
+  assert.equal(replayed, profile.source);
+  assert.deepEqual(original, before);
+  assert.throws(() => currentProfile(Buffer.concat([original, Buffer.from("\n")])), /historical harness must remain byte-exact/u);
+});
 
 for (const scenario of ["leaf", "root", "empty", "unknown", "tampered", "foreign", "source", "symlink"] as const) {
   test(`candidate declaration listing authenticates ${scenario} without requiring an unused root import`, async () => {

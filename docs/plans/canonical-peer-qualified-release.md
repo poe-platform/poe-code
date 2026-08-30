@@ -4,11 +4,15 @@ Date: August 30, 2026. Baseline: `c88efaed74968bc27e879b87bae23b44ec01b198`.
 
 ## Authorized scope
 
-Exactly ten paths: the two current qualification scripts; the stream public
+The initial ten paths: the two current qualification scripts; the stream public
 checks; metadata canonical runner; new shared `peer.mjs`; new
 `canonical-peer.test.ts`; qualified-release README; this plan; and the package
 manifest/lock for dev-only `memfs@4.56.10`. No other product, fixture, inventory,
-historical manifest or filesystem implementation is changed.
+historical manifest or filesystem implementation is changed. The separately
+approved eleventh path is `tests/plugins/stream-five-public/current-profile.mjs`,
+with preimage SHA-256
+`929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958`.
+Its scope is only the current generated catalog, not its sealed original input.
 
 The already committed canonical migration remains intact. The required peer is
 `poe-code >=13.0.0` with an exact development pin of `13.0.0`. Publication of
@@ -60,7 +64,7 @@ Evidence stage: `/tmp/safe-bash-qualified-repair.ocdgKi`.
 
 ## Commit-bound acceptance procedure
 
-Commit only these ten paths on local main with normal Conventional Commit and
+Commit only the explicitly approved paths on local main with normal Conventional Commit and
 hooks. Then validate a real clone at that exact commit using the existing native
 assets and explicit published peer13 tarball. No invented commit, working-tree
 source overlay, private FS restoration, historical exclusion or false green is
@@ -98,7 +102,46 @@ adjacent coverage controls pass; the source diagnostics remain unchanged.
 The first full wrapper still fails two of its 18 generated current stream cases:
 the generator expects 70 commands, while the independently reviewed maintained
 catalog is 80. The original frozen input remains byte-identical. The generator
-`tests/plugins/stream-five-public/current-profile.mjs` is outside the ten-path
-scope; its exact SHA-256 and a one-path approval request are recorded in the
-evidence stage. No generator, historical fixture or count is silently changed.
+`tests/plugins/stream-five-public/current-profile.mjs` was outside the initial
+ten-path scope; its exact SHA-256 and the one-path approval request are retained
+in the evidence stage. No historical fixture or count was silently changed.
 This result is not a qualified release pass.
+
+## Approved exact-catalog follow-up
+
+The leaf-declaration follow-up is real commit
+`e2233cf96edb558dbe15c11df4edc8b3d3f9fb35`. Its wrapper passes all 25 current
+consumer groups, their 20 configured emitted runtime programs and three negative
+type groups, archive 11/11 and metadata 318/318 with all 22 native rows. It then
+fails only the two stale generated catalog cases (16/18 pass); the packed phase
+is not reached. That snapshot and its unchanged-input evidence remain intact.
+
+The additional generator path was subsequently approved. New evidence is under
+`/tmp/safe-bash-catalog-repair.2014Ee`. Before editing, the approved preimage,
+live HEAD, empty index, six protected fixtures and unchanged unrelated status
+census were checked. No active target writer was observed and no remote exists.
+The current generator now carries the independently reviewed literal 80 names
+from the maintained catalog contract, without importing or deriving expectations
+from the implementation. Factory, registered dispatch and final factory guards
+compare the complete ordered list. No effect, limit, collision, cancellation,
+historical input or strong-diagnostic assertion is removed.
+
+TDD evidence retains six red catalog regressions with all previous 49 cases
+passing, then all seven new and previous/adjacent controls pass (80/80). The
+seventh test verifies the fixed input SHA, all 18 case registrations, exact
+forward transformation replay and changed-input refusal. The original attempted
+reverse-delta test was corrected because valid replacement outputs need not be
+unique; its unsuccessful run is retained. A mistakenly live-launched test failed
+for absent local memfs before tests ran; acceptance uses the normal npm-ci real
+candidate with the declared dependency, not undeclared or injected tooling.
+Source/test type diagnostics remain byte-identical to the 33 retained baseline
+diagnostics. These checks are not a full-wrapper pass or a waiver of the four
+protected historical FS failures and unrelated broad 136/25 failures/cancellations.
+
+The bounded follow-up commits only this generator, its owned regression test,
+this plan and the qualified-release README. Then the actual committed source
+must run the full wrapper, scoped peer13 tests/types, S3 profiles and installed
+same-graph SDK/shell identity/recovery. Any newly exposed unowned packed-phase
+blocker requires a separate exact-scope approval, not a fabricated commit,
+historical hash reseal, exclusion or implicit harness expansion. Final measured
+results belong to the new frozen receipt tied to that actual commit.

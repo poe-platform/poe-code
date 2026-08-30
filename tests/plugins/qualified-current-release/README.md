@@ -69,6 +69,24 @@ runtime dependency. The existing unit/test tooling remains unchanged. See
 `docs/plans/canonical-peer-qualified-release.md` for the bounded change and
 the distinction between current qualified acceptance and historical failures.
 
+### Current generated stream catalog
+
+The current generated profile independently declares all 80 default command
+names and their order. It compares the complete factory and registered catalogs,
+then repeats the factory comparison after the historical-corpus replay. It does
+not derive expected names from the registry under test or merely raise a count.
+The original SHA-pinned harness remains unchanged; all 18 generated cases and
+their effects, limits, cancellation, collision and negative controls remain.
+
+Six new generator regression cases first fail against the earlier profile,
+then pass with exact-catalog admission and same-count substitution, duplicate,
+ordering, missing and extra-command refusals. A seventh case checks the sealed
+input, all 18 registrations and exact transformation replay. Together with the
+49 existing peer/profile and 24 adjacent controls, all 80 units pass. The two
+earlier real-commit catalog failures remain recorded separately. These unit
+results do not certify the later packed phase: acceptance still requires the
+complete wrapper against the actual new commit and its unchanged-input checks.
+
 ### DU staging-input typing
 
 `staged-types.json` separately authenticates fourteen literal DU recipe inputs

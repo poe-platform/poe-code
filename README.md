@@ -261,16 +261,15 @@ console.log(identity.name, identity.handle);
 
 Uses `POE_API_KEY` or the stored credential and honors `POE_BASE_URL`. Throws an API error when Poe rejects the credential.
 
-### Shared filesystem foundation (planned release)
+### Shared filesystem foundation
 
-The next foundation-only release is intended to expose `poe-code/safe-fs`.
-Public packaging is still under validation; this import is not yet part of a
-verified release. `@poe-code/safe-fs` is the private workspace name, not a public
-npm import.
+`poe-code@12.0.3` publishes the Node.js foundation at `poe-code/safe-fs`.
+The installed release was verified on Node 18.18.2, 22.22.2 and 24.14.0.
+`@poe-code/safe-fs` is the private workspace name, not a public npm import.
 
 The implemented foundation contains memory, host-directory, S3 and WebDAV
 adapters; mount, read-only and overlay wrappers; and the shared `FileSystem`,
-`FsError` and `createNodeFsBridge` APIs. The intended public usage after release is:
+`FsError` and `createNodeFsBridge` APIs:
 
 ```typescript
 import { MemoryFileSystem } from "poe-code/safe-fs";
@@ -279,8 +278,9 @@ const filesystem = new MemoryFileSystem();
 await filesystem.writeFile("/note", new TextEncoder().encode("hello"));
 ```
 
-The public entry targets Node.js. Browser support, SafeJS/safe-bash runtime
-migration, CLI adapter configuration and the `safe-js` rename are not complete.
+The public entry targets Node.js. Browser support, SafeJS SDK/CLI adapter
+integration, SafeJS/safe-bash runtime migration and the `safe-js` rename remain
+pending.
 The host-directory adapter is not race-proof OS isolation. See the
 [foundation documentation](packages/safe-fs/README.md) for configuration,
 capabilities and backend limitations.

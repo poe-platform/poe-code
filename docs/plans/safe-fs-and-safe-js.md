@@ -1,8 +1,36 @@
 # Shared safe-fs adapters and safe-js rename
 
-Status: Node extraction and SafeJS adapter integration exist in the working tree.
+Status: The Node foundation is published in `poe-code@12.0.3`. SafeJS adapter
+integration exists in the working tree but is not part of that release.
 Cross-repository migration, the safe-js rename, browser support, and their release
-gates remain incomplete. No release is claimed by this plan update.
+gates remain incomplete. Only the foundation release recorded below is verified.
+
+## Incremental release record — A (August 30, 2026)
+
+- Published version: `poe-code@12.0.3`, public Node entry `poe-code/safe-fs`;
+  `@poe-code/safe-fs` remains a private workspace identity, not a public import.
+- Commit and registry `gitHead`: `1fede06f0956d5133b3e94eb4508f3e710c7d156`.
+  GitHub release run [`33294235871`](https://github.com/poe-platform/poe-code/actions/runs/33294235871)
+  succeeded; downloaded registry tarball integrity and provenance were verified.
+- The 68-path release preserved the remote baseline's SafeJS work and excluded
+  incomplete original-checkout integration/class/language changes. Foundation
+  provenance covers 51 files and 31 upstream records: 17 of 23 adapter files are
+  byte-identical and six transformed. These are release A counts, not a claim
+  that later browser-portability files were shipped.
+- Fresh published runtime/adapters/shared authority and error identity, real
+  temporary-directory integration, public CLI, and strict NodeNext/Bundler types
+  passed on Node 18.18.2, 22.22.2 and 24.14.0. One canonical FS runtime and all 35
+  published foundation declarations match the verified candidate bytes.
+- Candidate full suite: 26,266 passed and 41 existing skips, with no new hidden
+  exclusions; 136 FS-focused tests passed per Node version. Normal commit/push
+  hooks, the complete GitHub workflow, and published-artifact checks passed.
+- Whole-package browser support remains pending: the public root rejects an
+  unshimmed browser build on 11 Node built-ins. Helper-only Chrome evidence does
+  not establish whole-package support. SafeJS SDK/CLI adapter integration,
+  SafeJS/safe-bash runtime migration, the rename and language/class work remain
+  separate, incomplete work; earlier unchecked requirements below still apply.
+- Release B is not authorized by this record: it awaits Erdos's private-d.ts
+  proof, a frozen independently reviewed candidate and all required green gates.
 
 ## Exact requirement
 

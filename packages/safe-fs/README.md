@@ -4,9 +4,10 @@ Shared, filesystem-only TypeScript ESM adapters extracted from `safe-bash`
 (package name `virtual-bash`). This is a **transitional foundation** with no
 runtime package dependencies. The `@poe-code/safe-fs` workspace remains private
 at `0.0.0-dev`; public consumers use `poe-code/safe-fs` from the root poe-code
-distribution, not a separately published scoped package. This release candidate
-still requires installed-artifact verification and GitHub publication. Runtime
-consumer migration and removal of old copies are not complete.
+distribution, not a separately published scoped package. The Node.js foundation
+is published and installed-artifact verified in `poe-code@12.0.3`. Browser support,
+SafeJS SDK/CLI adapter integration, SafeJS/safe-bash runtime migration, removal of
+old copies and the `safe-js` rename remain pending.
 
 The package contains the existing implementations, not alternative backends.
 In particular, `RealFileSystem({ root })` is the existing machine-directory
@@ -15,7 +16,7 @@ dispatcher, or implicit filesystem selection.
 
 ## Exports
 
-The intended public import after release is `poe-code/safe-fs`. Its root exports:
+The public import is `poe-code/safe-fs`. Its root exports:
 
 - `FileSystem`, `FileSystemFactory`, `FileSystemCapabilities`, `FileStat`,
   `FileType`, `DirectoryEntry`, `EntryComparison`, `FsOptions`,
@@ -322,6 +323,26 @@ type-only assertion accommodates the workspace's newer Node declarations without
 removing that runtime property. Both the Node-only source check and the mixed
 DOM/Node source-alias check validate the streaming request adaptation.
 
+## Verified Node foundation release
+
+`poe-code@12.0.3` was published on August 30, 2026 from commit
+`1fede06f0956d5133b3e94eb4508f3e710c7d156` by successful GitHub release run
+[`33294235871`](https://github.com/poe-platform/poe-code/actions/runs/33294235871).
+Registry `gitHead`, tarball integrity and provenance match that commit and run.
+
+Fresh installed-package runtime, shared filesystem authority/error identity,
+real temporary-directory integration, strict NodeNext and Bundler TypeScript,
+and CLI checks passed on Node 18.18.2, 22.22.2 and 24.14.0. The release ships
+one canonical filesystem runtime and 35 foundation declaration files; their
+bytes match the verified candidate. The 17/23 byte-identical adapter count and
+six transformations below describe this released foundation, not later browser
+portability work.
+
+Private workspace/deep imports and the not-yet-supported SafeJS `adapter` option
+remain rejected by public type checks. Unshimmed browser bundling of the public
+root encounters 11 Node built-ins; cancellation-helper Chrome checks are not
+whole-package browser certification. The complete goal is not released.
+
 ## Provenance and validation
 
 `PROVENANCE.json` records source/destination paths and SHA-256 hashes from source
@@ -364,14 +385,15 @@ flags and corrects its append-position behavior; it does not certify native
 host behavior or race safety. HTTP tests use loopback; WebDAV uses injected
 responses. Neither is an independent deployed-provider acceptance test.
 
-The canonical consumer route is **`poe-code/safe-fs`**, intended to provide one
+The canonical consumer route is **`poe-code/safe-fs`**, providing one
 filesystem module graph for consumers resolving the same poe-code installation.
-This foundation-only candidate does not migrate SafeJS or safe-bash consumers.
+This foundation-only release does not migrate SafeJS or safe-bash consumers.
 The private workspace name is transitional, not a separate
 npm bootstrap requirement. No sibling `file:` dependency, second bundled identity,
-private registry bypass, or local publication is introduced here. Root config,
-build/release integration, browser packaging and consumer re-exports are
-separately owned.
+private registry bypass, or local publication is introduced here. Root packaging
+and installed-artifact verification are complete for the Node foundation in
+`12.0.3`; browser packaging and runtime consumer integration remain pending.
 Old copies must remain until consumer integration is verified, then be removed;
 while those copies remain this is not a completed deduplication. Validate real
-providers and supported host profiles before treating release integration as done.
+providers and additional host profiles before claiming support beyond the
+verified Node foundation.

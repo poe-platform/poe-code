@@ -255,7 +255,7 @@ These are pre-bound in every script — you don't need to import them.
 - **`Object`** — `keys`, `values`, `entries`, `hasOwn`, `is`, `fromEntries`, `assign`, `freeze`, `isFrozen`
 - **`Array`** — callable/constructable array factory plus `isArray`, `from`, `of`
 - **`Float32Array`** — binary32 indexed storage, `set`, `slice`, and `subarray`; see [released value support](#released-value-support)
-- **`String`** — value coercion, including default formatting of supported branded Errors without an own `toString`, plus `raw`, `fromCharCode`, `fromCodePoint`
+- **`String`** — explicit value coercion with supported ordinary-object defaults and own guest conversion hooks, plus `raw`, `fromCharCode`, `fromCodePoint`; see [released value support](#released-value-support)
 - **`Number`** — value coercion plus `isFinite`, `isNaN`, `isInteger`, `isSafeInteger`, `parseInt`, `parseFloat`, and standard numeric constants
 - **`Boolean`** — value coercion
 - **`Map`, `Set`** — sandbox collection constructors and methods (`get`/`set`/`has`/`delete`/`clear`/`forEach`/`keys`/`values`/`entries`, as applicable).
@@ -283,7 +283,9 @@ Supported typed graph copies and replay preserve tested bytes, offsets, shared v
 
 **String comparison (12.0.2).** `text.localeCompare(other, locales?, options?)` supports locale data and supported own data options such as `numeric` and `sensitivity`. The host validates locale identifiers and projected option values; inherited option properties are ignored and option accessors are rejected. For example, `"10".localeCompare("2", "en", { numeric: true }) > 0` is true. Compare signs, not a required magnitude of `-1` or `1`. Ordering depends on host locale/ICU, even with an explicit locale, and replay evaluates the comparison again. This does not expose guest `Intl`, arbitrary source coercion hooks in these arguments, generic native prototype receiver behavior or cross-host deterministic ordering. Extracted string methods retain their captured receiver. Both public `run()` failure channels still apply.
 
-**String(Error) (12.0.1).** Supported branded Errors without an own `toString` use default name/message formatting: `String(new TypeError("example failure"))` returns `"TypeError: example failure"`. Error-shaped plain records are not inferred to be Errors. This focused support does not enable ordinary-object `String({})` conversion or own guest `toString`/`valueOf` hooks; those remain separate, unreleased compatibility work.
+**Explicit String conversion.** Ordinary objects have a default string representation: `String({ value: 1 })` returns `"[object Object]"`. Supported own guest `toString` hooks run before `valueOf`. Ordinary unbound function hooks receive the converted object as `this`; arrow hooks retain lexical `this`, including when bound, and bound ordinary functions use their bound receiver. A nonprimitive result falls through to the next hook, and a thrown error propagates. For example, `String({ toString() { return "custom"; } })` returns `"custom"`. Missing hooks use the represented value's defaults; if neither conversion attempt produces a primitive, conversion throws `TypeError`.
+
+Arrays and admitted Float32Arrays use comma-joined elements by default. Supported branded Errors retain default name/message formatting: `String(new TypeError("example failure"))` returns `"TypeError: example failure"`; Error-shaped plain records are not inferred to be Errors. Opaque host functions are not invoked as conversion hooks, and accessor-based hooks are rejected. This feature adds no conversion-hook calls to passive copying, digesting or checkpointing; replay can still reevaluate an explicit source `String(...)` call. Implicit object coercion in binary addition, symbol/prototype conversion hooks, boxed String construction and own-property writes on source-callable values are separate, unsupported surfaces—not enabled by explicit conversion.
 
 ## Built-in host modules
 

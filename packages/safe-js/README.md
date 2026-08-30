@@ -16,15 +16,15 @@ It is the engine behind Poe Code's pipelines, experiment loops, and superintende
 ## Verified filesystem integration
 
 Adapter injection through `makeFsModule` and shared `poe-code/safe-fs`
-integration shipped in `poe-code@12.0.5` and was reverified in `12.0.7`.
-This source uses the canonical `poe-code/safe-js` route and `poe-safe-js` binary;
+integration shipped in `poe-code@12.0.5` and was reverified in `13.0.0`.
+The canonical `poe-code/safe-js` route and `poe-safe-js` binary shipped in `12.0.8`;
 the legacy public spellings remain aliases to the same artifacts.
 Both `poe-safe-js` and `poe-code harness run` support `--fs-config <path>` for
 explicit memory or host-directory configuration. The scoped workspace names
 `@poe-code/safe-js` and `@poe-code/safe-fs` are private, not public npm imports.
 
 Installed public runtime, TypeScript consumer and CLI checks passed on Node
-18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0. These public routes target
+18.18.2, 18.20.8, 20.19.2, 20.20.0, 22.22.2 and 24.14.0. These public routes target
 Node.js. Under the `browser` condition, the canonical `poe-code/safe-js`,
 `poe-code/safe-js/core`, `poe-code/safe-js/cli` and all three legacy `safejs`
 aliases explicitly deny runtime imports and expose empty
@@ -32,10 +32,24 @@ declarations; their Node exports remain available. Release C adds a portable
 filesystem-only graph at `poe-code/safe-fs` and `poe-code/safe-fs/core`, not a
 browser SafeJS SDK/runtime. The published C filesystem artifact separately
 passed 102 page/worker checks across Chromium, Firefox and Playwright WebKit;
-that proof does not cover browser SafeJS execution or unreleased guest codecs.
+that proof does not cover browser SafeJS execution, unreleased guest codecs or
+WebDAV request-stream transport acceptance. The published `13.0.0` WebDAV
+transport proof separately passes 390 browser assertions and 50 native Node HTTP
+controls. Native Firefox/WebKit streams safely reject, rather than gaining
+streaming support; Chromium HTTP/2 succeeds in the exercised deployment.
 Full browser SDK/runtime support, safe-bash migration and removal of its legacy
 adapter copies remain pending. Canonical rename publication is recorded in
 `docs/plans/safe-js-rename.md`, not attributed to the earlier C release.
+
+`13.0.0` retains the named host-call policy fix from `12.0.9` and typed error
+identity fix from `12.0.10`, with their installed public regressions reverified.
+For programmatically injected WebDAV adapters, custom or bound Fetch now requires
+`requestStreamSupport: "native"` for faithful native delegation, `true` for a
+trusted stream-preserving custom transport, or `false` to disable streaming.
+Exact current-realm Fetch is probed automatically; unknown transports fail before
+source acquisition or DAV I/O. Byte writes are unchanged. This adapter option
+adds no SDK global, CLI flag, environment variable or built-in JSON adapter.
+See the [foundation migration contract](../safe-fs/README.md#breaking-change-declare-custom-request-stream-support).
 
 ## Host-operation recovery policies
 

@@ -18,8 +18,21 @@ passed 17 public FS checks in both pages and module workers on Chromium
 11 negative browser-graph cases and 20 strict browser type profiles. This is
 not Safari certification or coverage of unreleased guest codecs/confinement.
 Browser SafeJS/safe-bash execution, safe-bash runtime migration and removal of
-old copies remain pending. Current source uses canonical `safe-js` names with
-legacy public aliases; those names were not part of the earlier C publication.
+old copies remain pending. Canonical `safe-js` names and identical legacy public
+aliases shipped in `12.0.8`, after the earlier C publication.
+
+The current verified release is `poe-code@13.0.0`. Its installed public runtime,
+types, CLI, canonical/legacy identity and policy/error regressions pass on Node
+18.18.2, 18.20.8, 20.19.2, 20.20.0, 22.22.2 and 24.14.0; all 51 FS declarations
+match the released candidate. This release tightens custom WebDAV streaming as
+described below. The earlier 102 C browser checks were not request-stream
+transport acceptance evidence. Actual `13.0.0` transport verification adds 50
+native Node HTTP controls and 390 assertions across Chromium, Firefox and WebKit
+pages/workers, including 134 zero-source/no-I/O cases and 1,242 stress operations.
+Native Firefox/WebKit streaming safely rejects before source acquisition or any
+DAV request; Chromium HTTP/2 streams in the exercised deployment, while native
+Chromium HTTP/1 remains unsupported. This is FS-only evidence, not full browser
+SDK support or certification of every WebDAV server.
 
 The package contains the existing implementations, not alternative backends.
 In particular, `RealFileSystem({ root })` is the existing machine-directory
@@ -385,6 +398,9 @@ server. S3 browser transport, origin-private storage and directory-handle adapte
 are not part of C.
 
 #### Breaking change: declare custom request-stream support
+
+This contract is published in `poe-code@13.0.0`; it is an intentional breaking
+change from earlier releases, not an unshipped proposal.
 
 Unannotated custom or bound Fetch functions no longer enable `writeStream`.
 They reject with `ENOTSUP` before source iterator acquisition or any filesystem

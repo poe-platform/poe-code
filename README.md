@@ -263,9 +263,9 @@ Uses `POE_API_KEY` or the stored credential and honors `POE_BASE_URL`. Throws an
 
 ### Shared filesystem foundation
 
-`poe-code@12.0.7` publishes the Node.js foundation at `poe-code/safe-fs`
+`poe-code@13.0.0` publishes the Node.js foundation at `poe-code/safe-fs`
 and shared filesystem integration for the SafeJS SDK and both CLIs.
-The installed release was verified on Node 18.18.2, 18.20.8, 20.20.0,
+The installed release was verified on Node 18.18.2, 18.20.8, 20.19.2, 20.20.0,
 22.22.2 and 24.14.0, including public runtime and TypeScript consumers.
 `@poe-code/safe-fs` is the private workspace name, not a public npm import.
 
@@ -280,8 +280,8 @@ const filesystem = new MemoryFileSystem();
 await filesystem.writeFile("/note", new TextEncoder().encode("hello"));
 ```
 
-The current source uses canonical SafeJS names; the versioned C verification
-above predates that rename. SafeJS accepts these adapters through
+Canonical SafeJS names shipped in `poe-code@12.0.8` and were reverified in
+`13.0.0`. SafeJS accepts these adapters through
 `makeFsModule({ adapter, root?, cwd?, signal? })`
 from `poe-code/safe-js`. The legacy `poe-code/safejs` routes and `poe-safejs` binary
 remain aliases to the identical canonical artifacts. Both `poe-safe-js` and `poe-code harness run` accept
@@ -290,7 +290,7 @@ legacy `--fs` and `--fs-root` options retain their Node-backed behavior.
 
 The default public entries target Node.js. Full browser runtime support,
 safe-bash runtime migration and removal of legacy adapter copies remain pending. Canonical and legacy
-SafeJS names share artifacts; publication is tracked in the rename plan.
+SafeJS names share the same published artifacts.
 The host-directory adapter is not race-proof OS isolation. See the
 [foundation documentation](packages/safe-fs/README.md) for configuration,
 capabilities and backend limitations.
@@ -318,6 +318,27 @@ in both pages and module workers on Chromium 149.0.7827.55, Firefox 150.0.2 and
 Playwright WebKit 26.4: 102 checks total, plus 11 negative browser-graph cases
 and 20 strict browser type profiles. This is FS-only coverage, not Safari
 certification, browser SafeJS execution or coverage of unreleased guest codecs.
+Those earlier checks did not establish WebDAV request-stream transport support.
+
+#### WebDAV streaming migration in 13.0.0
+
+Custom or bound Fetch functions must now declare `requestStreamSupport`:
+`"native"` for faithful current-realm native delegation, `true` for a trusted
+custom transport that preserves and consumes stream bodies, or `false` to
+disable streaming. Exact `globalThis.fetch` is probed automatically. Unknown
+transports reject with `ENOTSUP` before source acquisition or any DAV I/O;
+ordinary byte writes are unchanged. This is a programmatic adapter option,
+not a new environment variable, CLI flag or JSON configuration field. `true`
+is a host assertion, not protection against a dishonest transport.
+
+The actual `13.0.0` registry artifact passed 50 native Node HTTP controls and
+390 browser assertions across Chromium, Firefox and WebKit pages and workers,
+including 134 zero-source/no-I/O cases. Native Firefox/WebKit streaming safely
+rejects; genuine Chromium HTTP/2 streaming passes in the exercised deployment.
+Native Chromium HTTP/1 streaming remains unsupported. These are bounded FS
+transport results, not certification of every server or a browser SafeJS SDK.
+See the [WebDAV contract](packages/safe-fs/README.md#breaking-change-declare-custom-request-stream-support)
+and [release record](docs/plans/webdav-stream-capability-fix.md#verified-1300-publication--august-30-2026).
 
 Full browser SafeJS SDK/runtime support remains pending. Guest codec integration,
 portable SDK declaration closure and shared host-call policy/replay metadata

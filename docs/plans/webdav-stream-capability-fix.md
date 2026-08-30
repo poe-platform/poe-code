@@ -172,3 +172,58 @@ after the active gate. Release version is the coordinator's decision; the local
 tarball retains the baseline manifest version and is explicitly unpublished.
 No live source, root manifest, lockfile, Git index/ref, or existing frozen evidence
 is changed. No whole-SDK or deployed WebDAV certification follows from this fix.
+
+## Verified 13.0.0 publication — August 30, 2026
+
+The five-path breaking change was integrated by hunks onto current main, preserving
+the canonical rename, named-policy and typed-error fixes and the independent
+host-record prototype replay change `9b344cca528d0715917b3a4e84247b0af0258eb4`.
+The owner-local candidate evidence above remains historical; it was not substituted
+for the fresh root candidate or the published registry artifact.
+
+- Commit and actual registry gitHead: `1b180668e29f43421ab2b89210a17ab6eab8c06e`.
+- Release workflow: `33306648081`, success; exact checkout matches that commit.
+- Actual published version: `poe-code@13.0.0`, selected by the existing breaking
+  release policy, not locally published or assumed in advance.
+- Root candidate: 26,849 tests pass, 41 unchanged skips; build, lint, types,
+  all 17 package rules, workflow lint, signatures, smoke, pack and ordinary hooks
+  pass. One production file changes; no dependency or lockfile change.
+- Fresh installed public checks: 152 WebDAV/policy/error cases on each of Node
+  18.18.2, 18.20.8, 20.19.2, 20.20.0, 22.22.2 and 24.14.0, plus public SDK/CLI,
+  recovery, canonical alias identity and strict Node/browser type boundaries.
+  Separate Node type generations 18/20/22/24 pass. All 141 canonical JavaScript
+  artifacts and 1,492 declarations match the candidate; 51 are FS declarations.
+- Registry SHA-256: `4218eb12cd90a32c75731c106b97ae0b1e635c095dcc1430b15b397841f79f64`.
+- Registry SHA-1: `de17f627fb29478a3b3a16d4b6dcde40078e95ca`.
+- Registry integrity: `sha512-+7s4lR/WMNqHD8GvmmYuoZpIRGyH/Tkdarp4LM8ScI7XNsg8vNkChF4xL2LSUqGIfZ0tQ5u2KjH9GFjhaD+grQ==`.
+
+The independent prepared runner downloaded this exact version and verified all
+three digests and gitHead. Its actual registry tests pass 50 native Node HTTP/1
+controls on 18.18.2, 18.20.8, 20.20.0, 22.22.2 and 24.14.0. Chromium 149.0.7827.55,
+Firefox 150.0.2 and Playwright WebKit 26.4 pass in both pages and module workers:
+198 capability assertions, 156 transport assertions and 36 stress scenarios
+(390 total), plus 12 separately counted observations. The journals verify 134
+zero-source/no-I/O cases and 1,242 stress operations. All eight original Firefox
+coercion regressions now reject with `ENOTSUP` before source acquisition or any
+DAV request, preserving existing nonempty targets and leaving new targets absent.
+
+Native Firefox/WebKit streaming is safely unsupported, not made functional.
+Genuine Chromium HTTP/2 streaming passes in the exercised deployment; native
+Chromium HTTP/1 retains its transport limitation. Trusted custom transports
+remain explicit host assertions, not protection against dishonest code. Ordinary
+byte writes and the Node >=18.18 baseline remain supported. No browser SDK,
+guest codec, safe-bash migration or full language completion is claimed.
+
+Authoritative coordinator receipt:
+`/tmp/release-webdav-published.9XRakw/artifacts/final-receipt.json`.
+Independent published transport receipt:
+`/tmp/webdav-published-verification.yWqwIE/RECEIPT.json`.
+Regression/digest audit: `/tmp/webdav13-public-audit.z50A2E/HANDOFF.md`.
+Original checkout HEAD/index, all four terminal fonts and the `CLAUDE.md` symlink
+remain unchanged. Initial failures and frozen evidence are retained. The ten
+candidate-development advisories and 34 default-branch GitHub alerts are separate
+scopes, not a security-zero claim; no unrelated dependency upgrade was made.
+
+This postrelease reconciliation changes documentation only. Canonical adapter
+coverage must land in a separate test commit before private safe-bash retirement;
+that migration requires its own final candidate approval and gates.

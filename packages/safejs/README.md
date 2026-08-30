@@ -140,7 +140,7 @@ Embed SafeJS in your own product when you want to let users (or models) write sm
 | **Snapshots**                  | written at most every `snapshotIntervalMs` (default 30 s) to `snapshotPath`; resumed via `restore()` if `sourceHash` matches                                                                                                                                                                                                                                                                                                                    |
 | **Budgets**                    | `maxSteps`, `deadline`, `maxCallDepth`, `stringLength`, `arrayLength`, and collection entry limits                                                                                                                                                                                                                                                                                                                                              |
 | **Cancellation**               | `AbortSignal`, observed at every host call and yield point                                                                                                                                                                                                                                                                                                                                                                                      |
-| **Unsupported language edges** | prototype chains are intentionally absent; generator frames suspended mid-iteration cannot be snapshotted; the regex engine does not support backreferences, lookaround, named groups, or Unicode property escapes                                                                                                                                                                                                                              |
+| **Unsupported language edges** | prototype chains and binary `in` are unsupported; synchronous source generators can be reconstructed by replay, not opaque host iterators/native frames; regex flags are `g/i/m/s`, not `u/y`; backreferences, lookaround, named groups, and Unicode property escapes are unsupported                                                                                                                                                           |
 
 ## Supported globals
 
@@ -154,7 +154,7 @@ These are pre-bound in every script — you don't need to import them.
 - **`Number`** — value coercion plus `isFinite`, `isNaN`, `isInteger`, `isSafeInteger`, `parseInt`, `parseFloat`, and standard numeric constants
 - **`Boolean`** — value coercion
 - **`Map`, `Set`** — sandbox collection constructors and methods (`get`/`set`/`has`/`delete`/`clear`/`forEach`/`keys`/`values`/`entries`, as applicable).
-- **`RegExp`** — callable or constructable regex factory; regex literals are supported
+- **`RegExp`** — callable or constructable regex factory; literals and flags `g`, `i`, `m`, `s` are supported, but flags `u` and `y` are not
 - **`Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `AggregateError`** — callable and constructable factories
 - **`JSON`** — `parse`, `stringify` (replacer must be `null`/`undefined`; indent must be number/string/undefined)
 - **`console`** — `log`, `error` (routed to the `sink` you pass to `run()`)
@@ -162,24 +162,28 @@ These are pre-bound in every script — you don't need to import them.
 
 What is **not** available as a global: `Date`, `WeakMap`, `WeakSet`, `Symbol`, `BigInt`, `Reflect`, `Proxy`, `globalThis`, `setTimeout`, `setInterval`, `fetch`, `URL`, and other browser or Node globals. Expose a host module if you need any of them.
 
-Method coverage on plain values follows ECMAScript with a few removals. Arrays include the common iteration, search, copy, and mutation methods; strings include regex-aware `match`, `matchAll`, `search`, `split`, `replace`, and `replaceAll`; numbers include `toString`, `toFixed`, `toExponential`, and `toPrecision`; functions expose `call`, `apply`, and `bind`. See `src/interp/methods/` for the full list.
+SafeJS implements a subset of ECMAScript methods. Arrays include the common iteration, search, copy, and mutation methods; strings include regex-aware `match`, `matchAll`, `search`, `split`, `replace`, and `replaceAll`; numbers include `toString`, `toFixed`, `toExponential`, and `toPrecision`; functions expose `call`, `apply`, and `bind`. See `src/interp/methods/` for the implemented methods.
+
+Structural receiver mutations such as adding a Map entry inside its own `forEach` callback or pushing onto an array inside its own `reduce` callback are rejected with `SandboxError` code `reentry`. This restriction is separate from read-only array callback composition and direct Map/Set `for...of` iteration; it is not a blanket ban on nested reads or live collection iteration.
+
+Source-function own-property assignments such as `configured.option = 3` are unsupported and throw `TypeError`. Function arity and captured callable property data are separate contracts: host callback adapters preserve the source signature's `length` in the tested direct-argument and array-property paths, including default, rest, and bound signatures. This does not enable property writes or imply full native function reflection; see [checkpoint callback contracts](CHECKPOINT_REPLAY.md#external-reconciliation).
 
 ## Built-in host modules
 
 Registered by the caller via the factory functions exported from the package. None of them are auto-installed — you choose which to wire up per run.
 
-| Import    | Factory                                | What it gives the script                                                                                    |
-| --------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `agent`   | `makeAgentModule(spawnAgent)`          | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs, check })` — returns nonzero results unless `check: true`; checked errors retain `result` |
-| `git`     | `makeGitModule(cwd)`                   | `head`, `checkpoint`, `commit`, `revert`, `diff`                                                            |
-| `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)`                |
-| `log`     | `makeLogModule(sink?)`                 | `info`, `error`, `event` (JSONL by default)                                                                 |
-| `metric`  | `makeMetricModule(npmRunner)`          | `run(name)` — runs an npm script and parses its last numeric line                                           |
-| `mcp`     | `makeMcpModule({ servers, ...options })` | Named stdio/HTTP clients: `tools()`, `tool(name, args)`, `toolBatch(calls)`, `close()`; custom connectors remain supported |
-| `env`     | `makeEnvModule(allowListOrOptions)`    | `get(name)` — explicit grants; denied reads throw, granted missing values return `undefined`                 |
-| `fs`      | `makeFsModule({ root?, fs? })`         | `node:fs/promises`, optionally confined to `root` — see [the optional `fs` module](#the-optional-fs-module) |
-| `time`    | `makeTimeModule({ now?, random? })`    | `now`, `uuid`                                                                                               |
-| `fail`    | `makeFailModule()`                     | `default(message)` — throws `HarnessFailure`                                                                |
+| Import    | Factory                                  | What it gives the script                                                                                                                                |
+| --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `agent`   | `makeAgentModule(spawnAgent)`            | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs, check })` — returns nonzero results unless `check: true`; checked errors retain `result` |
+| `git`     | `makeGitModule(cwd)`                     | `head`, `checkpoint`, `commit`, `revert`, `diff`                                                                                                        |
+| `harness` | `makeHarnessModule(frontmatter, meta)`   | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)`                                                            |
+| `log`     | `makeLogModule(sink?)`                   | `info`, `error`, `event` (JSONL by default)                                                                                                             |
+| `metric`  | `makeMetricModule(npmRunner)`            | `run(name)` — runs an npm script and parses its last numeric line                                                                                       |
+| `mcp`     | `makeMcpModule({ servers, ...options })` | Named stdio/HTTP clients: `tools()`, `tool(name, args)`, `toolBatch(calls)`, `close()`; custom connectors remain supported                              |
+| `env`     | `makeEnvModule(allowListOrOptions)`      | `get(name)` — explicit grants; denied reads throw, granted missing values return `undefined`                                                            |
+| `fs`      | `makeFsModule({ root?, fs? })`           | `node:fs/promises`, optionally confined to `root` — see [the optional `fs` module](#the-optional-fs-module)                                             |
+| `time`    | `makeTimeModule({ now?, random? })`      | `now`, `uuid`                                                                                                                                           |
+| `fail`    | `makeFailModule()`                       | `default(message)` — throws `HarnessFailure`                                                                                                            |
 
 ## Quick start
 
@@ -262,20 +266,26 @@ as the runner they are mirroring.
 
 ### `run(source, options?)`
 
-Executes a script module. Resolves to:
+Executes a script module. A fulfilled call returns one of these shapes:
 
 - `{ ok: true, returnValue?, snapshot, stats }` on success
-- `{ ok: false, error, snapshot, stats }` on interpreter errors
+- `{ ok: false, error, snapshot, stats }` for a returned interpreter diagnostic
+
+The `run()` promise can also reject, including for application throws and API failures. Handle both channels: catch rejection around `await run(...)` and check `result.ok` when it fulfills. Source shape can affect the failure channel; lint acceptance does not establish runtime support. A guest return value such as `{ ok: false }` is application data and can appear inside an API result with `ok: true`; inspect `returnValue` separately.
 
 Options: `bindings`, `budget`, `modules`, `randomSeed`, `signal`, `snapshot` (prior snapshot), `snapshotIntervalMs`, `snapshotPath`, `sink`.
 
-### `dump(resultOrPromise, { onFailure? })`
+### `dump(resultOrPromise, { mode?, onFailure? })`
 
-Serializes a snapshot to formatted JSON. Accepts a completed `RunResult` or the original `run()` promise (requesting its next yield while active). After rejection, `{ onFailure: "checkpoint" }` requests current replay state without changing the failure; see [RECOVERY.md](RECOVERY.md).
+Serializes a snapshot to formatted JSON. Accepts a completed `RunResult` or the original `run()` promise. The default `mode: "capture"` requests the next yield and rejects capture while an injected host call is active. An external caller can use `mode: "replay"` to capture the latest yielded replay checkpoint during a pending host call; it does not serialize the live host operation. After rejection, `{ onFailure: "checkpoint" }` requests current replay state without changing the failure. See [external checkpoint rules](CHECKPOINT_REPLAY.md#external-checkpoints-during-host-waits) and [RECOVERY.md](RECOVERY.md).
 
 ### `restore(snapshot, { source })`
 
 Validates a stored snapshot against the current source via `sourceHash`. Returns it unchanged on match, throws on mismatch. For changed source or supported older execution semantics, use the explicit `inspectSnapshotMigration()` / `migrateSnapshot()` continuation workflow in [MIGRATION.md](MIGRATION.md).
+
+New runs use `jobs-v7`. Genuine `jobs-v6` snapshots retain v6 execution semantics on restore and later dumps; this compatibility does not retroactively repair historically broken raw-Promise v6 captures. Never rewrite version markers to force replay. See [execution compatibility](CHECKPOINT_REPLAY.md#execution-compatibility).
+
+Raw `SnapshotBackend.write(snapshot)` inputs have shallow bindings: nested references can change after capture while copied primitives need not. Use public `dump`/`restore` artifacts for portable replay. Already serialized bytes cannot be changed by later source mutations, but a subsequent dump can differ, including in outer legacy projections. Tested canonical replay graphs and native observations remain intact despite real legacy function-marker alias/name loss; this is not universal whole-dump stability. See [raw views and serialized checkpoints](CHECKPOINT_REPLAY.md#raw-views-and-serialized-checkpoints).
 
 ### `runHarness(filepath, options)`
 
@@ -292,6 +302,8 @@ Loads, lints, and runs a harness file.
 2. Register it under a name in `run({ modules })`.
 3. Mirror the same name and exported names in `lint({ modules })` if you lint separately.
 4. For explicit boundary copying, use `deepCopyToSandbox` / `deepCopyFromSandbox`.
+
+For external recovery of a pending host call, match the genuine `hostCallResumeProvider` request and supply its real outcome and required callback disposition. Convert a reconstructed source-function callback result with that active invocation's `context.toSandboxValue`, after awaiting the appropriate `context.replayed` result. The generic copier rejects native functions; the context converter is not a general function importer and rejects adapters from another invocation. Conversion does not invoke the returned source function or replace callback identity/order evidence. See [external reconciliation](CHECKPOINT_REPLAY.md#external-reconciliation).
 
 The runtime accepts plain objects or `Map`s at both levels:
 
@@ -323,12 +335,15 @@ no module bodies to inspect.
 
 - **Ordinary restore is source- and execution-pinned.** Formatting-only changes can remain compatible; structural or execution-semantics changes require an explicit continuation migration. Inspect the old checkpoint, reconcile outstanding operations, select application state, and create a new checkpoint with `migrateSnapshot()` or `harness migrate`; see [MIGRATION.md](MIGRATION.md). No old frames or effects execute during migration.
 - **Budgets remain host-controlled.** Exhaustion throws fatal `SandboxError`; the host can explicitly capture a current failure checkpoint and resume with a larger budget. Replay work is charged again, unsupported state can prevent recovery, and pending effects require reconciliation; see [RECOVERY.md](RECOVERY.md).
+- **Old captures cannot recover lost data.** A Map capture that already split shared callable identities lacks the information needed to reconstruct the original alias. Preserve the artifact and reconcile application state before an authorized reset or migration; current replay is not a retroactive repair. See [collection identity](CHECKPOINT_REPLAY.md#collection-identity-and-older-captures).
+- **Old argument digests may require reset.** In tested plain/nested-object cases, current host argument digest construction does not call source `toJSON`; old captures whose digest depended on that call refuse with reset required before host re-issue or proof-provider execution. The tested old named-array control still replays. This is not a rule for every old capture or a universal non-invocation guarantee. Reconcile prior effects before restarting; see [argument digests](CHECKPOINT_REPLAY.md#argument-digests-and-source-tojson).
 
 ## What's intentionally limited
 
 - No user-defined classes or prototype chains.
-- No async generators. Synchronous generators work, but a generator suspended mid-iteration cannot be snapshotted.
-- Regex support covers common literals, `RegExp`, and string methods, but not backreferences, lookaround, named groups, or Unicode property escapes.
+- No async generators. Synchronous source generators can be reconstructed from source and replay history, including a suspended source loop; opaque host iterators and native generator frames are not serialized. Checkpoint timing and host recovery still apply; see [synchronous source generators](CHECKPOINT_REPLAY.md#synchronous-source-generators).
+- Regex support covers common literals, `RegExp`, and string methods with flags `g`, `i`, `m`, and `s`. Other flags, including `u` and `y`, are rejected. Backreferences, lookaround, named groups, and Unicode property escapes are separate unsupported syntax.
+- Binary `in` is unsupported even when lint accepts it. For an own-property check, use `Object.hasOwn(object, key)`; it does not implement prototype-chain membership. Handle both `run()` failure channels described above.
 - No network or process modules in the box. Build them as host modules with the surface you want to expose. The bundled `fs` module is off until registered, and a narrower module is preferable when a harness only needs a few paths.
 - No multi-file imports — a script is a single module body. Compose by registering more modules.
 
